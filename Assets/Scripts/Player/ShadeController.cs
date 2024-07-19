@@ -11,12 +11,12 @@ public class ShadeController : MonoBehaviour
 
     [Space]
     [Header("Stats")]
-    public float speed = 10;
+    public float walkSpeed = 10;
     public float jumpForce = 11;
     public float jumpBufferFrames = 50;
     public float coyoteFrames = 50;
-    public float slideSpeed = 1;
-    public float wallJumpLerp = 3.75f;
+    public float wallSlideSpeed = 1;
+    public float wallJumpControl = 3.75f;
     public float dashSpeed = 50;
 
     [Space]
@@ -34,10 +34,10 @@ public class ShadeController : MonoBehaviour
 
     public int side = 1;
 
-    //[Space]
-    //[Header("Polish")]
-    //public ParticleSystem dashParticle;
-    //public ParticleSystem jumpParticle;
+    [Space]
+    [Header("Polish")]
+    public ParticleSystem dashParticle;
+    public ParticleSystem jumpParticle;
     //public ParticleSystem wallJumpParticle;
     //public ParticleSystem slideParticle;
 
@@ -57,7 +57,7 @@ public class ShadeController : MonoBehaviour
         float yRaw = Input.GetAxisRaw("Vertical");
         Vector2 dir = new Vector2(x, y);
 
-        Walk(dir);
+        Movement(dir);
 
         if (coll.onGround && !isDashing)
         {
@@ -132,7 +132,7 @@ public class ShadeController : MonoBehaviour
 
         //side = anim.sr.flipX ? -1 : 1;
 
-        //jumpParticle.Play();
+        jumpParticle.Play();
     }
 
     private void Dash(float x, float y)
@@ -158,7 +158,7 @@ public class ShadeController : MonoBehaviour
         StartCoroutine(GroundDash());
         DOVirtual.Float(14, 0, .8f, RigidbodyDrag);
 
-        //dashParticle.Play();
+        dashParticle.Play();
         rb.gravityScale = 0;
         GetComponent<GravityController>().enabled = false;
         wallJumped = true;
@@ -218,21 +218,21 @@ public class ShadeController : MonoBehaviour
         }
         float push = pushingWall ? 0 : rb.velocity.x;
 
-        rb.velocity = new Vector2(push, -slideSpeed);
+        rb.velocity = new Vector2(push, -wallSlideSpeed);
     }
 
-    private void Walk(Vector2 dir)
+    private void Movement(Vector2 dir)
     {
         if (!canMove)
             return;
 
         if (!wallJumped)
         {
-            rb.velocity = new Vector2(dir.x * speed, rb.velocity.y);
+            rb.velocity = new Vector2(dir.x * walkSpeed, rb.velocity.y);
         }
         else
         {
-            rb.velocity = Vector2.Lerp(rb.velocity, (new Vector2(dir.x * speed, rb.velocity.y)), wallJumpLerp * Time.deltaTime);
+            rb.velocity = Vector2.Lerp(rb.velocity, (new Vector2(dir.x * walkSpeed, rb.velocity.y)), wallJumpControl * Time.deltaTime);
         }
     }
 
@@ -247,6 +247,7 @@ public class ShadeController : MonoBehaviour
         rb.velocity += dir * jumpForce;
 
         //particle.Play();
+        jumpParticle.Play(); // remove when adding slideParticle
     }
 
     IEnumerator JumpBuffer(float frameAmount)
