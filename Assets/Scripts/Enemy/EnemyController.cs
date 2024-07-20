@@ -11,6 +11,8 @@ namespace Enemy
         Inactive,
         Patrolling,
         Chasing,
+        Sweeping,
+        Watching,
         Attacking,
     }
 
@@ -37,7 +39,9 @@ namespace Enemy
 
         [field: Space]
         [field: Header("Enemy Sensors")]
-        [field: SerializeField] public Collider2D PlayerSensor { get; private set; }
+        [field: SerializeField] public Collider2D PatrolSensor { get; private set; }
+        [field: SerializeField] public Collider2D ChaseSensor { get; private set; }
+        [field: SerializeField] public Collider2D AttackSensor { get; private set; }
         [field: SerializeField] public Collider2D LedgeSensor { get; private set; }
         [field: SerializeField] public Collider2D GroundSensor { get; private set; }
         [field: SerializeField] public LayerMask[] SightOcclusionMasks { get; private set; }
@@ -47,13 +51,15 @@ namespace Enemy
         public int HorizontalFacing { get; private set; } = 1;
 
 
-        private ContactFilter2D groundSensorFilter;
-        private ContactFilter2D playerSensorFilter;
+        private ContactFilter2D groundFilter;
+        private ContactFilter2D targetFilter;
+  
         private readonly Collider2D[] sensorResults = new Collider2D[50];
-        private float currentChaseTime = 0.0f;
+        private float currentStateDuration = 0.0f;
         private LayerMask sightOcclusionMask;
         private float attackLength = 1;
-        private float currentAttackDuration = 0;
+        private float currentAttackCooldown = 0;
+        private float currentFlipCooldown = 0;
 
         //debug
         private Vector3 gizmoTarget;
@@ -65,18 +71,18 @@ namespace Enemy
 
             EnemyState = EnemyState.Patrolling;
 
-            groundSensorFilter = new ContactFilter2D
+            groundFilter = new ContactFilter2D
             {
                 useTriggers = true
             };
 
-            playerSensorFilter = new ContactFilter2D
+            targetFilter = new ContactFilter2D
             {
                 useTriggers = true
             };
 
-            groundSensorFilter.SetLayerMask(LayerMask.GetMask("Ground"));
-            playerSensorFilter.SetLayerMask(LayerMask.GetMask("Player"));
+            groundFilter.SetLayerMask(LayerMask.GetMask("Ground"));
+            targetFilter.SetLayerMask(LayerMask.GetMask("Player"));
 
             sightOcclusionMask = LayerUtility.CombineMasks(SightOcclusionMasks);
             attackLength = GetClipLength("Attack");
@@ -87,8 +93,8 @@ namespace Enemy
             switch (EnemyState)
             {
                 case EnemyState.Patrolling:
-                    if (PlayerProximityCheck(out Collider2D collider)
-                        && PlayerSightCheck(collider.transform))
+                    if (PatrolProximityCheck(out Collider2D collider)
+                        && SightCheck(collider.transform))
                     {
                         ChangeState(EnemyState.Chasing);
                         break;
@@ -96,73 +102,156 @@ namespace Enemy
 
                     else gizmoTarget = Vector3.zero;
 
-                    if (GroundCheck(out _) && LedgeCheck(out _))
+                    if (GroundCheck())
                     {
-                        FlipCharacter();
+                        if(LedgeCheck())
+                        {
+                            FlipCharacter();
+                        }
                     }
 
                     UpdateVelocity(new Vector2(HorizontalFacing, 0), EnemyData.PatrolSpeed);
                     break;
 
                 case EnemyState.Chasing:
-                    if (PlayerProximityCheck(out collider)
-                        && PlayerSightCheck(collider.transform))
+                    if (ChaseProximityCheck(out collider)
+                        && SightCheck(collider.transform))
                     {
-                        float distance = GetDistance(collider.transform.position, transform.position);
-                        if (distance < EnemyData.AttackRange)
+                        //float distance = GetDistance(collider.transform.position, transform.position);
+                        //if (distance < EnemyData.AttackRange)
+                        //{
+                        //    ChangeState(EnemyState.Attacking);
+                        //    break;
+                        //}
+
+                        if (AttackProximityCheck(out _))
                         {
+                            currentFlipCooldown = 0;
                             ChangeState(EnemyState.Attacking);
-                            break;
+                            return;
                         }
 
-                        else currentChaseTime = EnemyData.ChaseDuration + Time.time;
+                        else if (GroundCheck())
+                        {
+
+                            if (LedgeCheck())
+                            {
+                                if (IsPointInFront(collider.transform.position))
+                                {
+                                    ChangeState(EnemyState.Watching);
+                                    return;
+                                }
+
+                                else
+                                {
+                                    FlipCharacter();
+                                    return;
+                                }
+                            }
+
+                            else if(!IsPointInFront(collider.transform.position)
+                                && currentFlipCooldown < Time.time)
+                            {
+                                FlipCharacter();
+                                return;
+                            }
+                        }
+
+                        UpdateVelocity(new Vector2(HorizontalFacing, 0), EnemyData.ChaseSpeed);
                     }
 
-                    else if (currentChaseTime < Time.time)
+                    else
+                    {
+                        gizmoTarget = Vector3.zero;
+                        ChangeState(EnemyState.Sweeping);
+                        return;
+                    }
+
+                    break;
+
+                case EnemyState.Sweeping:
+                    if (ChaseProximityCheck(out collider)
+                        && SightCheck(collider.transform))
+                    {
+                        ChangeState(EnemyState.Chasing);
+                        return;
+                    }
+
+                    else if (currentStateDuration < Time.time)
                     {
                         ChangeState(EnemyState.Patrolling);
-                        break;
+                        return;
                     }
 
-                    else gizmoTarget = Vector3.zero;
-
-                    if (GroundCheck(out _) && LedgeCheck(out _))
+                    else if (GroundCheck())
                     {
-                        FlipCharacter();
+
+                        if (LedgeCheck())
+                        {
+                            FlipCharacter();
+                        }
                     }
 
-                    UpdateVelocity(new Vector2(HorizontalFacing, 0), EnemyData.ChaseSpeed);
+                    UpdateVelocity(new Vector2(HorizontalFacing, 0), EnemyData.SweepSpeed);
+
                     break;
 
                 case EnemyState.Attacking:
-                    if (currentAttackDuration < Time.time)
+                    if (currentAttackCooldown < Time.time)
                     {
                         OnAttackComplete();
                         ChangeState(EnemyState.Chasing);
+                        return;
+                    }
+
+                    break;
+                case EnemyState.Watching:
+                    if (ChaseProximityCheck(out collider)
+                        && SightCheck(collider.transform))
+                    {
+                        if (!IsPointInFront(collider.transform.position))
+                        {
+                            ChangeState(EnemyState.Chasing);
+                            return;
+                        }
+                    }
+
+                    else
+                    {
+                        ChangeState(EnemyState.Sweeping);
                     }
 
                     break;
 
-                    default: //EnemyState.Inactive:
+                default: //EnemyState.Inactive:
                     break;
             }
         }
 
         private void ChangeState(EnemyState state)
         {
+            currentStateDuration = 0;
+
+            Debug.Log($"Switching state to: {state}");
+
             switch (state)
             {
                 case EnemyState.Patrolling:
                     break;
 
                 case EnemyState.Chasing:
-                    currentChaseTime = EnemyData.ChaseDuration + Time.time;
+                    break;
+                case EnemyState.Sweeping:
+                    currentStateDuration = EnemyData.SweepDuration + Time.time;
                     break;
                 case EnemyState.Attacking:
-                    currentAttackDuration = attackLength + Time.time;
+                    currentAttackCooldown = attackLength + Time.time;
                     UpdateVelocity(new Vector3(HorizontalFacing, 0), 0);
                     Animator.SetTrigger("Attack");
                     Debug.Log("Attacking");
+                    break;
+                case EnemyState.Watching:
+                    UpdateVelocity(new Vector2(HorizontalFacing, 0), 0);
                     break;
                 default: //EnemyState.Inactive:
                     break;
@@ -172,6 +261,7 @@ namespace Enemy
         }
 
 
+
         protected void FlipCharacter()
         {
             Vector3 localScale = transform.localScale;
@@ -179,7 +269,9 @@ namespace Enemy
             transform.localScale = localScale;
 
             HorizontalFacing = -HorizontalFacing;
-            Debug.Log($"Flipping horizontal direction to: {HorizontalFacing}");
+            //Debug.Log($"Flipping horizontal direction to: {HorizontalFacing}");
+            currentFlipCooldown = EnemyData.FlipCooldown + Time.time;
+
         }
 
         private bool ColliderCheck(Collider2D sensor, ContactFilter2D filter, out Collider2D hitCollider)
@@ -200,7 +292,7 @@ namespace Enemy
             return false;
         }
 
-        private bool SightCheck(Vector2 startPoint, Transform target, LayerMask mask)
+        private bool RaycastTransformCheck(Vector2 startPoint, Transform target, LayerMask mask)
         {
             mask = LayerUtility.CombineMasks(mask, LayerUtility.LayerToLayerMask(target.gameObject.layer));
             Vector2 direction = (Vector2)target.position - startPoint;
@@ -221,24 +313,52 @@ namespace Enemy
             Rigidbody2D.velocity = direction * speed;
         }
 
-        private bool GroundCheck(out Collider2D hitCollider)
+        private bool GroundCheck()
         {
-            return ColliderCheck(GroundSensor, groundSensorFilter, out hitCollider);
+            return ColliderCheck(GroundSensor, groundFilter, out _);
         }
 
-        private bool LedgeCheck(out Collider2D hitCollider)
+        private bool LedgeCheck()
         {
-            return !ColliderCheck(LedgeSensor, groundSensorFilter, out hitCollider);
+            return !ColliderCheck(LedgeSensor, groundFilter, out _);
         }
 
-        private bool PlayerProximityCheck(out Collider2D hitCollider)
+        private bool PatrolProximityCheck(out Collider2D hitCollider)
         {
-            return ColliderCheck(PlayerSensor, playerSensorFilter, out hitCollider);
+            return ColliderCheck(PatrolSensor, targetFilter, out hitCollider);
         }
 
-        private bool PlayerSightCheck(Transform target)
+        private bool ChaseProximityCheck(out Collider2D hitCollider)
         {
-            return SightCheck(SightPivot.position, target, sightOcclusionMask);
+            return ColliderCheck(ChaseSensor, targetFilter, out hitCollider);
+        }
+
+        private bool AttackProximityCheck(out Collider2D hitCollider)
+        {
+            return ColliderCheck(AttackSensor, targetFilter, out hitCollider);
+        }
+
+        private bool SightCheck(Transform target)
+        {
+            return RaycastTransformCheck(SightPivot.position, target, sightOcclusionMask);
+        }
+
+        private bool IsPointInFront(Vector2 point)
+        {
+            Vector2 direction = GetDirection(transform.position, point).normalized;
+
+            if ((direction.x > 0 && HorizontalFacing > 0)
+                || direction.x < 0 && HorizontalFacing < 0)
+            {
+                return true;
+            }
+
+            else return false;
+        }
+
+        private Vector2 GetDirection(Vector2 pointA, Vector2 pointB)
+        {
+            return pointB - pointA;
         }
 
         private float GetDistance(Vector2 pointA, Vector2 pointB)
