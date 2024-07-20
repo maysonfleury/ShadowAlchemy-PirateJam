@@ -247,7 +247,7 @@ public class ShadeController : MonoBehaviour
         rb.velocity += dir * jumpForce;
 
         //particle.Play();
-        jumpParticle.Play(); // remove when adding slideParticle
+        jumpParticle.Play(); // remove when adding wallJumpParticle
     }
 
     IEnumerator JumpBuffer(float frameAmount)

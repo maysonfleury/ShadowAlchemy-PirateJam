@@ -11,18 +11,18 @@ public class SpiderController : MonoBehaviour
 
     [Space]
     [Header("Stats")]
-    public float speed = 10;
+    public float walkSpeed = 10;
     public float jumpForce = 50;
-    public float slideSpeed = 5;
-    public float wallJumpLerp = 10;
-    public float dashSpeed = 20;
+    public float jumpBufferFrames = 50;
+    public float coyoteFrames = 50;
+    public float wallJumpControl = 3.75f;
+    public float jumpAttackSpeed = 20;
 
     [Space]
     [Header("Booleans")]
     public bool canMove;
     public bool wallGrab;
     public bool wallJumped;
-    public bool wallSlide;
     public bool isDashing;
 
     [Space]
@@ -34,8 +34,8 @@ public class SpiderController : MonoBehaviour
 
     //[Space]
     //[Header("Polish")]
-    //public ParticleSystem dashParticle;
-    //public ParticleSystem jumpParticle;
+    public ParticleSystem dashParticle;
+    public ParticleSystem jumpParticle;
     //public ParticleSystem wallJumpParticle;
     //public ParticleSystem slideParticle;
 
@@ -57,24 +57,30 @@ public class SpiderController : MonoBehaviour
 
         Walk(dir);
 
-        if (coll.onWall && Input.GetButton("Fire3") && canMove)
+        if (coll.onWall && canMove)
         {
             if(side != coll.wallSide)
                 //anim.Flip(side*-1);
             wallGrab = true;
-            wallSlide = false;
         }
 
-        if (Input.GetButtonUp("Fire3") || !coll.onWall || !canMove)
+        if (!coll.onWall || !canMove)
         {
             wallGrab = false;
-            wallSlide = false;
         }
 
         if (coll.onGround && !isDashing)
         {
             wallJumped = false;
-            //GetComponent<BetterJumping>().enabled = true;
+            GetComponent<GravityController>().enabled = true;
+        }
+
+        if (coll.onGround && coll.onWall)
+        {
+            if (y > 0)
+                wallGrab = true;
+            else
+                wallGrab = false;
         }
         
         if (wallGrab && !isDashing)
@@ -85,24 +91,12 @@ public class SpiderController : MonoBehaviour
 
             float speedModifier = y > 0 ? .5f : 1;
 
-            rb.velocity = new Vector2(rb.velocity.x, y * (speed * speedModifier));
+            rb.velocity = new Vector2(rb.velocity.x, y * (walkSpeed * speedModifier));
         }
         else
         {
             rb.gravityScale = 3;
         }
-
-        if(coll.onWall && !coll.onGround)
-        {
-            if (x != 0 && !wallGrab)
-            {
-                wallSlide = true;
-                WallSlide();
-            }
-        }
-
-        if (!coll.onWall || coll.onGround)
-            wallSlide = false;
 
         if (Input.GetButtonDown("Jump"))
         {
@@ -114,7 +108,7 @@ public class SpiderController : MonoBehaviour
                 WallJump();
         }
 
-        if (Input.GetButtonDown("Fire1") && !hasDashed)
+        if (Input.GetButtonDown("Fire3") && !hasDashed)
         {
             if(xRaw != 0 || yRaw != 0)
                 Dash(xRaw, yRaw);
@@ -133,7 +127,7 @@ public class SpiderController : MonoBehaviour
 
         //WallParticle(y);
 
-        if (wallGrab || wallSlide || !canMove)
+        if (wallGrab || !canMove)
             return;
 
         if(x > 0)
@@ -146,8 +140,6 @@ public class SpiderController : MonoBehaviour
             side = -1;
             //anim.Flip(side);
         }
-
-
     }
 
     void GroundTouch()
@@ -157,14 +149,14 @@ public class SpiderController : MonoBehaviour
 
         //side = anim.sr.flipX ? -1 : 1;
 
-        //jumpParticle.Play();
+        jumpParticle.Play();
     }
 
     private void Dash(float x, float y)
     {
-        Camera.main.transform.DOComplete();
-        Camera.main.transform.DOShakePosition(.2f, .5f, 14, 90, false, true);
-        FindObjectOfType<RippleEffect>().Emit(Camera.main.WorldToViewportPoint(transform.position));
+        //Camera.main.transform.DOComplete();
+        //Camera.main.transform.DOShakePosition(.2f, .5f, 14, 90, false, true);
+        //FindObjectOfType<RippleEffect>().Emit(Camera.main.WorldToViewportPoint(transform.position));
 
         hasDashed = true;
 
@@ -173,7 +165,7 @@ public class SpiderController : MonoBehaviour
         rb.velocity = Vector2.zero;
         Vector2 dir = new Vector2(x, y);
 
-        rb.velocity += dir.normalized * dashSpeed;
+        rb.velocity += dir.normalized * jumpAttackSpeed;
         StartCoroutine(DashWait());
     }
 
@@ -183,17 +175,17 @@ public class SpiderController : MonoBehaviour
         StartCoroutine(GroundDash());
         DOVirtual.Float(14, 0, .8f, RigidbodyDrag);
 
-        //dashParticle.Play();
+        dashParticle.Play();
         rb.gravityScale = 0;
-        //GetComponent<BetterJumping>().enabled = false;
+        GetComponent<GravityController>().enabled = false;
         wallJumped = true;
         isDashing = true;
 
         yield return new WaitForSeconds(.3f);
 
-        //dashParticle.Stop();
+        dashParticle.Stop();
         rb.gravityScale = 3;
-        //GetComponent<BetterJumping>().enabled = true;
+        GetComponent<GravityController>().enabled = true;
         wallJumped = false;
         isDashing = false;
     }
@@ -218,27 +210,9 @@ public class SpiderController : MonoBehaviour
 
         Vector2 wallDir = coll.onRightWall ? Vector2.left : Vector2.right;
 
-        Jump((Vector2.up / 1.5f + wallDir / 1.5f), true);
+        Jump(Vector2.up + (wallDir / 1.5f), true);
 
         wallJumped = true;
-    }
-
-    private void WallSlide()
-    {
-        if(coll.wallSide != side)
-         //anim.Flip(side * -1);
-
-        if (!canMove)
-            return;
-
-        bool pushingWall = false;
-        if((rb.velocity.x > 0 && coll.onRightWall) || (rb.velocity.x < 0 && coll.onLeftWall))
-        {
-            pushingWall = true;
-        }
-        float push = pushingWall ? 0 : rb.velocity.x;
-
-        rb.velocity = new Vector2(push, -slideSpeed);
     }
 
     private void Walk(Vector2 dir)
@@ -251,11 +225,11 @@ public class SpiderController : MonoBehaviour
 
         if (!wallJumped)
         {
-            rb.velocity = new Vector2(dir.x * speed, rb.velocity.y);
+            rb.velocity = new Vector2(dir.x * walkSpeed, rb.velocity.y);
         }
         else
         {
-            rb.velocity = Vector2.Lerp(rb.velocity, (new Vector2(dir.x * speed, rb.velocity.y)), wallJumpLerp * Time.deltaTime);
+            rb.velocity = Vector2.Lerp(rb.velocity, (new Vector2(dir.x * walkSpeed, rb.velocity.y)), wallJumpControl * Time.deltaTime);
         }
     }
 
@@ -267,7 +241,7 @@ public class SpiderController : MonoBehaviour
         rb.velocity = new Vector2(rb.velocity.x, 0);
         rb.velocity += dir * jumpForce;
 
-        //particle.Play();
+        jumpParticle.Play(); // remove when adding wallJumpParticle
     }
 
     IEnumerator DisableMovement(float time)
