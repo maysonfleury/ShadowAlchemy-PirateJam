@@ -17,6 +17,7 @@ public class PlayerFormController : MonoBehaviour
 
     public PlayerForm currentForm;
     private Transform currentTransform;
+    public int currentHP;
 
     [SerializeField] GameObject shadeObject;
     [SerializeField] GameObject batObject;
@@ -26,6 +27,7 @@ public class PlayerFormController : MonoBehaviour
     [SerializeField] ParticleSystem possessParticle;
     
     private CinemachineVirtualCamera virtualCamera;
+    private bool canTakeDamage;
 
     // Start is called before the first frame update
     void Start()
@@ -33,8 +35,13 @@ public class PlayerFormController : MonoBehaviour
         virtualCamera = FindObjectOfType<CinemachineVirtualCamera>();
         currentForm = PlayerForm.Shade;
         currentTransform = shadeObject.transform;
+        currentHP = 1;
+        canTakeDamage = true;
         //StartCoroutine(ChangeFormRoutine(PlayerForm.Spider, 5f));
         //StartCoroutine(ChangeFormRoutine(PlayerForm.Bat, 10f));
+        StartCoroutine(ChangeFormRoutine(PlayerForm.Rat, 5f));
+        //StartCoroutine(ChangeFormRoutine(PlayerForm.Skeleton, 20f));
+        //StartCoroutine(ChangeFormRoutine(PlayerForm.Shade, 25f));
     }
 
     IEnumerator ChangeFormRoutine(PlayerForm form, float delay)
@@ -61,6 +68,7 @@ public class PlayerFormController : MonoBehaviour
                 currentForm = PlayerForm.Shade;
                 currentTransform.gameObject.SetActive(false);
                 currentTransform = shadeObject.transform;
+                currentHP = 1;
             break;
 
             case PlayerForm.Bat:
@@ -70,6 +78,7 @@ public class PlayerFormController : MonoBehaviour
                 currentForm = PlayerForm.Bat;
                 currentTransform.gameObject.SetActive(false);
                 currentTransform = batObject.transform;
+                currentHP = 1;
             break;
 
             case PlayerForm.Rat:
@@ -79,6 +88,7 @@ public class PlayerFormController : MonoBehaviour
                 currentForm = PlayerForm.Rat;
                 currentTransform.gameObject.SetActive(false);
                 currentTransform = ratObject.transform;
+                currentHP = 2;
             break;
 
             case PlayerForm.Spider:
@@ -88,6 +98,7 @@ public class PlayerFormController : MonoBehaviour
                 currentForm = PlayerForm.Spider;
                 currentTransform.gameObject.SetActive(false);
                 currentTransform = spiderObject.transform;
+                currentHP = 2;
             break;
 
             case PlayerForm.Skeleton:
@@ -97,8 +108,63 @@ public class PlayerFormController : MonoBehaviour
                 currentForm = PlayerForm.Skeleton;
                 currentTransform.gameObject.SetActive(false);
                 currentTransform = skeletonObject.transform;
+                currentHP = 4;
             break;
         }
+    }
+
+    public void TakeDamage()
+    {
+        if (!canTakeDamage)
+            return;
+            
+        if (currentForm == PlayerForm.Shade && currentHP == 1)
+        {
+            // Die
+            currentHP--;
+            Debug.Log("dead");
+        }
+        else if (currentForm != PlayerForm.Shade && currentHP == 1)
+        {
+            ChangeForm(PlayerForm.Shade);
+        }
+        else if (currentHP > 1)
+        {
+            switch (currentForm)
+            {
+                case PlayerForm.Shade:
+                break;
+
+                case PlayerForm.Bat:
+                    // Bat hurt VFX/SFX
+                break;
+
+                case PlayerForm.Rat:
+                    // Rat hurt VFX/SFX
+                break;
+
+                case PlayerForm.Spider:
+                    // Spider hurt VFX/SFX
+                break;
+
+                case PlayerForm.Skeleton:
+                    // Skeleton hurt VFX/SFX
+                break;
+            }
+            currentHP--;
+        }
+    }
+
+    public void giveInvulnerability(float time)
+    {
+        StartCoroutine(iFrameRoutine(time));
+    }
+
+    IEnumerator iFrameRoutine(float iFrameTime)
+    {
+        canTakeDamage = false;
+        yield return new WaitForSeconds(iFrameTime);
+        canTakeDamage = true;
     }
 
     private void ChangeCameraTarget(Transform newTarget)
