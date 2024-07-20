@@ -11,7 +11,7 @@ public class SpikeTrap : MonoBehaviour
     {
         if (col.gameObject.CompareTag("Player"))
         {
-            Debug.Log("it works");
+            Debug.Log("Player stepped on a trap!");
 
             PlayerFormController form = col.gameObject.GetComponentInParent<PlayerFormController>();
             

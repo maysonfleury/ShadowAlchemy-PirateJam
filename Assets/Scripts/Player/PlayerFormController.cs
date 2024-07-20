@@ -39,7 +39,7 @@ public class PlayerFormController : MonoBehaviour
         canTakeDamage = true;
         //StartCoroutine(ChangeFormRoutine(PlayerForm.Spider, 5f));
         //StartCoroutine(ChangeFormRoutine(PlayerForm.Bat, 10f));
-        StartCoroutine(ChangeFormRoutine(PlayerForm.Rat, 5f));
+        //StartCoroutine(ChangeFormRoutine(PlayerForm.Rat, 5f));
         //StartCoroutine(ChangeFormRoutine(PlayerForm.Skeleton, 20f));
         //StartCoroutine(ChangeFormRoutine(PlayerForm.Shade, 25f));
     }

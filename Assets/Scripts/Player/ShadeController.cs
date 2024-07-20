@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
@@ -18,10 +19,12 @@ public class ShadeController : MonoBehaviour
     public float wallSlideSpeed = 1;
     public float wallJumpControl = 3.75f;
     public float dashSpeed = 50;
+    public float attackCooldown = 1f;
 
     [Space]
     [Header("Booleans")]
     public bool canMove;
+    public bool canAttack;
     public bool wallJumped;
     public bool wallSlide;
     public bool isDashing;
@@ -38,6 +41,7 @@ public class ShadeController : MonoBehaviour
     [Header("Polish")]
     public ParticleSystem dashParticle;
     public ParticleSystem jumpParticle;
+    public ParticleSystem attackParticle;
     //public ParticleSystem wallJumpParticle;
     //public ParticleSystem slideParticle;
 
@@ -58,6 +62,7 @@ public class ShadeController : MonoBehaviour
         Vector2 dir = new Vector2(x, y);
 
         Movement(dir);
+        Aim();
 
         if (coll.onGround && !isDashing)
         {
@@ -87,6 +92,14 @@ public class ShadeController : MonoBehaviour
                 WallJump();
             else
                 StartCoroutine(JumpBuffer(jumpBufferFrames));
+        }
+
+        if (Input.GetButtonDown("Fire1"))
+        {
+            //anim.SetTrigger("attack");
+
+            if (canAttack)
+                Attack();
         }
 
         if (Input.GetButtonDown("Fire3") && !hasDashed)
@@ -133,6 +146,36 @@ public class ShadeController : MonoBehaviour
         //side = anim.sr.flipX ? -1 : 1;
 
         jumpParticle.Play();
+    }
+
+    private void Aim()
+    {
+        Vector3 cursorPosCam = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 15f));
+        Vector3 cursorPos = cursorPosCam + (Camera.main.transform.forward * 15.0f);
+        Vector3 aimDir = (cursorPos - gameObject.transform.position).normalized * 10f;
+        if (coll.onGround)
+            aimDir.y = Mathf.Clamp(aimDir.y, -0.53f, 1.4f);
+        else
+            aimDir.y = Mathf.Clamp(aimDir.y, -1.4f, 1.4f);
+        if (Mathf.Abs(aimDir.y) < 1.2f)
+            aimDir.x = Mathf.Clamp(Math.Abs(aimDir.x), 0.8f, 1f) * Mathf.Sign(aimDir.x);
+        else
+            aimDir.x = Mathf.Clamp(Math.Abs(aimDir.x), 0f, 1f) * Mathf.Sign(aimDir.x);
+        aimDir.z = 0;
+        Transform attackVisual = attackParticle.transform.parent.transform;
+        attackVisual.localPosition = aimDir;
+    }
+
+    private void Attack()
+    {
+        canAttack = false;
+        attackParticle.Play();
+        Invoke("ResetAttack", attackCooldown);
+    }
+
+    private void ResetAttack()
+    {
+        canAttack = true;
     }
 
     private void Dash(float x, float y)
