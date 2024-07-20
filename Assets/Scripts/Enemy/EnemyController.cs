@@ -28,6 +28,7 @@ namespace Enemy
         [field: Space]
         [field: Header("Enemy Components")]
         [field: SerializeField] public Animator Animator { get; private set; }
+        [field: SerializeField] public ParticleSystem AttackParticles { get; private set; }
 
         [field: Space]
         [field: Header("Enemy Pivots")]
@@ -147,10 +148,29 @@ namespace Enemy
             }
         }
 
-        protected void UpdateVelocity(Vector2 direction, float speed)
+        private void ChangeState(EnemyState state)
         {
-            Rigidbody2D.velocity = direction * speed;
+            switch (state)
+            {
+                case EnemyState.Patrolling:
+                    break;
+
+                case EnemyState.Chasing:
+                    currentChaseTime = EnemyData.ChaseDuration + Time.time;
+                    break;
+                case EnemyState.Attacking:
+                    currentAttackDuration = attackLength + Time.time;
+                    UpdateVelocity(new Vector3(HorizontalFacing, 0), 0);
+                    Animator.SetTrigger("Attack");
+                    Debug.Log("Attacking");
+                    break;
+                default: //EnemyState.Inactive:
+                    break;
+            }
+
+            EnemyState = state;
         }
+
 
         protected void FlipCharacter()
         {
@@ -196,6 +216,11 @@ namespace Enemy
             else return false;
         }
 
+        protected void UpdateVelocity(Vector2 direction, float speed)
+        {
+            Rigidbody2D.velocity = direction * speed;
+        }
+
         private bool GroundCheck(out Collider2D hitCollider)
         {
             return ColliderCheck(GroundSensor, groundSensorFilter, out hitCollider);
@@ -221,32 +246,10 @@ namespace Enemy
             return Vector2.Distance(pointA, pointB);
         }
 
-        private void ChangeState(EnemyState state)
-        {
-            switch (state)
-            {
-                case EnemyState.Patrolling:
-                    break;
-
-                case EnemyState.Chasing:              
-                    currentChaseTime = EnemyData.ChaseDuration + Time.time;
-                    break;
-                case EnemyState.Attacking:
-                    currentAttackDuration = attackLength + Time.time;
-                    UpdateVelocity(new Vector3(HorizontalFacing, 0), 0);
-                    Animator.SetTrigger("Attack");
-                    Debug.Log("Attacking");
-                    break;
-                default: //EnemyState.Inactive:
-                    break;
-            }
-
-            EnemyState = state;
-        }
-
         private void OnAttackComplete()
         {
             Debug.Log("Attack Completed");
+            AttackParticles.Play();
         }
 
         private float GetClipLength(string clipName)
