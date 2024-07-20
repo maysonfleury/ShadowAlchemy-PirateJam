@@ -29,9 +29,10 @@ namespace Enemy
         [field: SerializeField] public Transform SightPivot { get; private set; }
         [field: SerializeField] public Collider2D PlayerSensor { get; private set; }
         [field: SerializeField] public Collider2D LedgeSensor { get; private set; }
+        [field: SerializeField] public Collider2D GroundSensor { get; private set; }
         [field: SerializeField] public LayerMask[] SightOcclusionMasks { get; private set; }
 
-        private ContactFilter2D ledgeSensorFilter;
+        private ContactFilter2D groundSensorFilter;
         private ContactFilter2D playerSensorFilter;
         private readonly Collider2D[] sensorResults = new Collider2D[50];
 
@@ -40,6 +41,7 @@ namespace Enemy
 
         private float currentChaseTime = 0.0f;
         private LayerMask sightOcclusionMask;
+        private bool isGrounded = true;
 
         public EnemyState EnemyState { get; private set; } = EnemyState.Inactive;
 
@@ -53,7 +55,7 @@ namespace Enemy
 
             EnemyState = EnemyState.Patrolling;
 
-            ledgeSensorFilter = new ContactFilter2D
+            groundSensorFilter = new ContactFilter2D
             {
                 useTriggers = true
             };
@@ -63,7 +65,7 @@ namespace Enemy
                 useTriggers = true
             };
 
-            ledgeSensorFilter.SetLayerMask(LayerMask.GetMask("Ground"));
+            groundSensorFilter.SetLayerMask(LayerMask.GetMask("Ground"));
             playerSensorFilter.SetLayerMask(LayerMask.GetMask("Player"));
 
             sightOcclusionMask = LayerUtility.CombineMasks(SightOcclusionMasks);
@@ -83,7 +85,7 @@ namespace Enemy
 
                     else gizmoTarget = Vector3.zero;
 
-                    if (!LedgeCheck(out _))
+                    if (GroundCheck(out _) && LedgeCheck(out _))
                     {                    
                         FlipCharacter();
                     }
@@ -106,7 +108,7 @@ namespace Enemy
 
                     else gizmoTarget = Vector3.zero;
 
-                    if (!LedgeCheck(out _))
+                    if (GroundCheck(out _) && LedgeCheck(out _))
                     {
                         FlipCharacter();
                     }
@@ -167,9 +169,14 @@ namespace Enemy
             else return false;
         }
 
+        private bool GroundCheck(out Collider2D hitCollider)
+        {
+            return ColliderCheck(GroundSensor, groundSensorFilter, out hitCollider);
+        }
+
         private bool LedgeCheck(out Collider2D hitCollider)
         {
-            return ColliderCheck(LedgeSensor, ledgeSensorFilter, out hitCollider);
+            return !ColliderCheck(LedgeSensor, groundSensorFilter, out hitCollider);
         }
 
         private bool PlayerProximityCheck(out Collider2D hitCollider)
