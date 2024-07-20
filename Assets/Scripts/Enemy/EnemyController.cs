@@ -41,6 +41,7 @@ namespace Enemy
         [field: Header("Enemy Sensors")]
         [field: SerializeField] public Collider2D PatrolSensor { get; private set; }
         [field: SerializeField] public Collider2D ChaseSensor { get; private set; }
+        [field: SerializeField] public Collider2D SweepSensor { get; private set; }
         [field: SerializeField] public Collider2D AttackSensor { get; private set; }
         [field: SerializeField] public Collider2D LedgeSensor { get; private set; }
         [field: SerializeField] public Collider2D GroundSensor { get; private set; }
@@ -170,7 +171,7 @@ namespace Enemy
                     break;
 
                 case EnemyState.Sweeping:
-                    if (ChaseProximityCheck(out collider)
+                    if (SweepProximityCheck(out collider)
                         && SightCheck(collider.transform))
                     {
                         ChangeState(EnemyState.Chasing);
@@ -331,6 +332,11 @@ namespace Enemy
         private bool ChaseProximityCheck(out Collider2D hitCollider)
         {
             return ColliderCheck(ChaseSensor, targetFilter, out hitCollider);
+        }
+
+        private bool SweepProximityCheck(out Collider2D hitCollider)
+        {
+            return ColliderCheck(SweepSensor, targetFilter, out hitCollider);
         }
 
         private bool AttackProximityCheck(out Collider2D hitCollider)
