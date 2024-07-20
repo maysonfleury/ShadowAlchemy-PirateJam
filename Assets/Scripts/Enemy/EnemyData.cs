@@ -19,6 +19,7 @@ namespace Enemy
         [field: SerializeField] public float PatrolSpeed { get; private set; } = 5.0f;
         [field: SerializeField] public float ChaseSpeed { get; private set; } = 10.0f;
         [field: SerializeField] public float ChaseDuration { get; private set; } = 10.0f;
+        [field: SerializeField] public float AttackRange { get; private set; } = 5;
 
     }
 }

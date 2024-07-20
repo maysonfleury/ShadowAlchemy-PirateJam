@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Enemy
@@ -10,6 +11,7 @@ namespace Enemy
         Inactive,
         Patrolling,
         Chasing,
+        Attacking,
     }
 
     [RequireComponent(typeof(Rigidbody2D))]
@@ -21,29 +23,36 @@ namespace Enemy
         public Collider2D RigidbodyCollider { get; private set; }
 
         [field: Space]
-        [field: Header("Enemy Components")]
         [field: SerializeField] public EnemyData EnemyData { get; private set; }
 
         [field: Space]
-        [field: Header("Detection Components")]
+        [field: Header("Enemy Components")]
+        [field: SerializeField] public Animator Animator { get; private set; }
+
+        [field: Space]
+        [field: Header("Enemy Pivots")]
+        [field: SerializeField] public Transform AttackPivot { get; private set; }
         [field: SerializeField] public Transform SightPivot { get; private set; }
+
+        [field: Space]
+        [field: Header("Enemy Sensors")]
         [field: SerializeField] public Collider2D PlayerSensor { get; private set; }
         [field: SerializeField] public Collider2D LedgeSensor { get; private set; }
         [field: SerializeField] public Collider2D GroundSensor { get; private set; }
         [field: SerializeField] public LayerMask[] SightOcclusionMasks { get; private set; }
 
-        private ContactFilter2D groundSensorFilter;
-        private ContactFilter2D playerSensorFilter;
-        private readonly Collider2D[] sensorResults = new Collider2D[50];
-
+        public EnemyState EnemyState { get; private set; } = EnemyState.Inactive;
         public float EnemySpeed { get; private set; } = 1.0f;
         public int HorizontalFacing { get; private set; } = 1;
 
+
+        private ContactFilter2D groundSensorFilter;
+        private ContactFilter2D playerSensorFilter;
+        private readonly Collider2D[] sensorResults = new Collider2D[50];
         private float currentChaseTime = 0.0f;
         private LayerMask sightOcclusionMask;
-        private bool isGrounded = true;
-
-        public EnemyState EnemyState { get; private set; } = EnemyState.Inactive;
+        private float attackLength = 1;
+        private float currentAttackDuration = 0;
 
         //debug
         private Vector3 gizmoTarget;
@@ -69,6 +78,7 @@ namespace Enemy
             playerSensorFilter.SetLayerMask(LayerMask.GetMask("Player"));
 
             sightOcclusionMask = LayerUtility.CombineMasks(SightOcclusionMasks);
+            attackLength = GetClipLength("Attack");
         }
 
         protected void FixedUpdate()
@@ -86,7 +96,7 @@ namespace Enemy
                     else gizmoTarget = Vector3.zero;
 
                     if (GroundCheck(out _) && LedgeCheck(out _))
-                    {                    
+                    {
                         FlipCharacter();
                     }
 
@@ -97,10 +107,17 @@ namespace Enemy
                     if (PlayerProximityCheck(out collider)
                         && PlayerSightCheck(collider.transform))
                     {
-                        currentChaseTime = EnemyData.ChaseDuration + Time.time;
+                        float distance = GetDistance(collider.transform.position, transform.position);
+                        if (distance < EnemyData.AttackRange)
+                        {
+                            ChangeState(EnemyState.Attacking);
+                            break;
+                        }
+
+                        else currentChaseTime = EnemyData.ChaseDuration + Time.time;
                     }
 
-                    else if(currentChaseTime < Time.time)
+                    else if (currentChaseTime < Time.time)
                     {
                         ChangeState(EnemyState.Patrolling);
                         break;
@@ -115,7 +132,17 @@ namespace Enemy
 
                     UpdateVelocity(new Vector2(HorizontalFacing, 0), EnemyData.ChaseSpeed);
                     break;
-                default: //EnemyState.Inactive:
+
+                case EnemyState.Attacking:
+                    if (currentAttackDuration < Time.time)
+                    {
+                        OnAttackComplete();
+                        ChangeState(EnemyState.Chasing);
+                    }
+
+                    break;
+
+                    default: //EnemyState.Inactive:
                     break;
             }
         }
@@ -189,6 +216,11 @@ namespace Enemy
             return SightCheck(SightPivot.position, target, sightOcclusionMask);
         }
 
+        private float GetDistance(Vector2 pointA, Vector2 pointB)
+        {
+            return Vector2.Distance(pointA, pointB);
+        }
+
         private void ChangeState(EnemyState state)
         {
             switch (state)
@@ -199,11 +231,35 @@ namespace Enemy
                 case EnemyState.Chasing:              
                     currentChaseTime = EnemyData.ChaseDuration + Time.time;
                     break;
+                case EnemyState.Attacking:
+                    currentAttackDuration = attackLength + Time.time;
+                    UpdateVelocity(new Vector3(HorizontalFacing, 0), 0);
+                    Animator.SetTrigger("Attack");
+                    Debug.Log("Attacking");
+                    break;
                 default: //EnemyState.Inactive:
                     break;
             }
 
             EnemyState = state;
+        }
+
+        private void OnAttackComplete()
+        {
+            Debug.Log("Attack Completed");
+        }
+
+        private float GetClipLength(string clipName)
+        {
+            RuntimeAnimatorController ac = Animator.runtimeAnimatorController;
+            foreach (AnimationClip clip in ac.animationClips)
+            {
+                if (clip.name == clipName)
+                {
+                    return clip.length;
+                }
+            }
+            return 0f;
         }
 
         private void OnDrawGizmos()
