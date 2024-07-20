@@ -18,8 +18,10 @@ namespace Enemy
         [field: SerializeField] public EnemyBehaviourType EnemyBehaviour { get; private set; }
         [field: SerializeField] public float PatrolSpeed { get; private set; } = 5.0f;
         [field: SerializeField] public float ChaseSpeed { get; private set; } = 10.0f;
-        [field: SerializeField] public float ChaseDuration { get; private set; } = 10.0f;
-        [field: SerializeField] public float AttackRange { get; private set; } = 5;
+        [field: SerializeField] public float SweepSpeed { get; private set; } = 8.0f;
+        [field: SerializeField] public float SweepDuration { get; private set; } = 5.0f;
+        [field: SerializeField] public float FlipCooldown { get; private set; } = 2.0f;
+        //[field: SerializeField] public float AttackRange { get; private set; } = 5;
 
     }
 }

@@ -1,29 +1,20 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public static class LayerUtility
 {
-
-    public static T SetAllBits<T>() where T : Enum
-    {
-        int newValue = 0;
-
-        foreach (T flag in Enum.GetValues(typeof(T)))
-        {
-            int flagValue = Convert.ToInt32(flag);
-            newValue |= flagValue;
-        }
-
-        return (T)Enum.ToObject(typeof(T), newValue);
-    }
-
+    //Creates a new LayerMask from a layer index
     public static LayerMask LayerToLayerMask(int layer)
     {
         return 1 << layer;
     }
 
+    //Sets a specific LayerMask bit relative to the layer index
+    public static void AddLayerToMask(ref LayerMask mask, int layer)
+    {
+        mask |= (1 << layer);
+    }
+
+    //Combines LayerMasks into a single new LayerMask
     public static LayerMask CombineMasks(LayerMask mask1, LayerMask mask2)
     {
         return mask1 | mask2;
@@ -41,11 +32,13 @@ public static class LayerUtility
         return combinedMask;
     }
 
-    public static void RemoveMaskFromMask(ref LayerMask mask, LayerMask layerToRemove)
+    //Unsets bits from a LayerMask, using another LayerMask as a reference
+    public static void UnsetBitsFromMask(ref LayerMask mask, LayerMask bitsToRemove)
     {
-        mask &= ~(1 << layerToRemove);
+        mask &= ~(1 << bitsToRemove);
     }
 
+    //Returns true if any identical bits are set between both LayerMasks
     public static bool CheckMaskOverlap(LayerMask mask1, LayerMask mask2)
     {
         return (mask1 & mask2) != 0;
