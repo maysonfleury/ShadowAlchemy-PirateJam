@@ -18,6 +18,7 @@ namespace Enemy
         Attacking,
     }
 
+    [RequireComponent(typeof(Animator))]
     [RequireComponent(typeof(Rigidbody2D))]
     [RequireComponent(typeof(Collider2D))]
     public class EnemyController : MonoBehaviour
@@ -25,13 +26,11 @@ namespace Enemy
 
         public Rigidbody2D Rigidbody2D { get; private set; }
         public Collider2D RigidbodyCollider { get; private set; }
+        public Animator Animator { get; private set; }
 
         [field: Space]
         [field: SerializeField] public EnemyData EnemyData { get; private set; }
 
-        [field: Space]
-        [field: Header("Enemy Components")]
-        [field: SerializeField] public Animator Animator { get; private set; }
 
         [field: Space]
         [field: Header("Enemy Pivots")]
@@ -79,6 +78,7 @@ namespace Enemy
         {
             Rigidbody2D = GetComponent<Rigidbody2D>();
             RigidbodyCollider = GetComponent<Collider2D>();
+            Animator = GetComponent<Animator>();
 
             EnemyState = EnemyState.Patrolling;
 
