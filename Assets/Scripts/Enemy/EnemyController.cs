@@ -258,14 +258,13 @@ namespace Enemy
                     currentStateDuration = EnemyData.SweepDuration + Time.time;
                     break;
                 case EnemyState.Attacking:
-                    currentAttackAnimationTime = attackAnimationLength + Time.time;
+
+                    currentAttackAnimationTime = attackAnimationLength
+                        + EnemyData.AttackCooldown
+                        + Time.time;
+
                     Animator.SetTrigger("Attack");
                     Debug.Log("Attacking");
-
-                    Vector2 direction = new Vector2(EnemyData.AttackForceDirection.x 
-                        * HorizontalFacing, EnemyData.AttackForceDirection.y).normalized;
-
-                    ApplyForce(direction, EnemyData.AttackForceSpeed);
 
                     break;
                 case EnemyState.Watching:
@@ -448,13 +447,7 @@ namespace Enemy
         private void OnAttackComplete()
         {
             Debug.Log("Attack Completed");
-            currentAttackCooldown = EnemyData.AttackCooldown + Time.time;
             AttackParticles.Play();
-        }
-
-        private void ApplyForce(Vector2 direction, float speed)
-        {
-            Rigidbody2D.AddForce(direction * speed, ForceMode2D.Impulse);
         }
 
         private float GetClipLength(string clipName)
@@ -479,6 +472,13 @@ namespace Enemy
 
                 Gizmos.DrawSphere(gizmoTarget, 0.2f);
             }
+        }
+
+        public void ApplyForce(ForceSO forceSO)
+        {
+            float new_x = HorizontalFacing * forceSO.Direction.x;
+            Vector2 velocity = new Vector2(new_x, forceSO.Direction.y).normalized * forceSO.Speed;
+            Rigidbody2D.AddForce(velocity, forceSO.ForceMode);
         }
     }
 }

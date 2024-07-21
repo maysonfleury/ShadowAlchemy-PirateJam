@@ -37,8 +37,6 @@ namespace Enemy
         [field: Space]
         [field: Header("Attack State")]
         [field: SerializeField] public float AttackCooldown { get; private set; } = 1.0f;
-        [field: SerializeField] public Vector2 AttackForceDirection { get; private set; }
-        [field: SerializeField] public float AttackForceSpeed { get; private set; }
 
         [field: Space]
         [field: Header("Watch State")]
