@@ -2,7 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using UnityEditor.Hardware;
 using UnityEngine;
+using static Unity.VisualScripting.Member;
 
 namespace Enemy
 {
@@ -30,7 +32,6 @@ namespace Enemy
         [field: Space]
         [field: Header("Enemy Components")]
         [field: SerializeField] public Animator Animator { get; private set; }
-        [field: SerializeField] public ParticleSystem AttackParticles { get; private set; }
 
         [field: Space]
         [field: Header("Enemy Pivots")]
@@ -44,8 +45,13 @@ namespace Enemy
         [field: SerializeField] public Collider2D SweepSensor { get; private set; }
         [field: SerializeField] public Collider2D AttackSensor { get; private set; }
         [field: SerializeField] public Collider2D LedgeSensor { get; private set; }
+        [field: SerializeField] public Collider2D WallSensor { get; private set; }
         [field: SerializeField] public Collider2D GroundSensor { get; private set; }
         [field: SerializeField] public LayerMask[] SightOcclusionMasks { get; private set; }
+
+        [field: Space]
+        [field: Header("Attack Components")]
+        [field: SerializeField] public ParticleSystem AttackParticles { get; private set; }
 
         public EnemyState EnemyState { get; private set; } = EnemyState.Inactive;
         public float EnemySpeed { get; private set; } = 1.0f;
@@ -58,9 +64,13 @@ namespace Enemy
         private readonly Collider2D[] sensorResults = new Collider2D[50];
         private float currentStateDuration = 0.0f;
         private LayerMask sightOcclusionMask;
-        private float attackLength = 1;
         private float currentAttackCooldown = 0;
+        private float attackAnimationLength = 0;
+        private float currentAttackAnimationTime = 0;
+        private float speedThisFrame = 0;
+        private float currentFlipWaitTime = 0;
         private float currentFlipCooldown = 0;
+        private bool isWaitingToFlip = false;
 
         //debug
         private Vector3 gizmoTarget;
@@ -86,134 +96,135 @@ namespace Enemy
             targetFilter.SetLayerMask(LayerMask.GetMask("Player"));
 
             sightOcclusionMask = LayerUtility.CombineMasks(SightOcclusionMasks);
-            attackLength = GetClipLength("Attack");
+            attackAnimationLength = GetClipLength("Attack");
         }
 
         protected void FixedUpdate()
         {
+            if(!GroundCheck())
+                return;
+
             switch (EnemyState)
             {
                 case EnemyState.Patrolling:
                     if (PatrolProximityCheck(out Collider2D collider)
                         && SightCheck(collider.transform))
                     {
+                        RemoveVelocity();
                         ChangeState(EnemyState.Chasing);
-                        break;
                     }
 
-                    else gizmoTarget = Vector3.zero;
-
-                    if (GroundCheck())
+                    else if(LedgeCheck() || WallCheck())
                     {
-                        if(LedgeCheck())
-                        {
-                            FlipCharacter();
-                        }
+                        RemoveVelocity();
+                        PrepareFlipCharacter(EnemyData.PatrolFlipTime);
                     }
 
-                    UpdateVelocity(new Vector2(HorizontalFacing, 0), EnemyData.PatrolSpeed);
-                    break;
+                    else
+                    {
+                        UpdateVelocity(new(HorizontalFacing, 0), EnemyData.PatrolSpeed);                       
+                    }
+
+                    return;
 
                 case EnemyState.Chasing:
                     if (ChaseProximityCheck(out collider)
                         && SightCheck(collider.transform))
                     {
-                        //float distance = GetDistance(collider.transform.position, transform.position);
-                        //if (distance < EnemyData.AttackRange)
-                        //{
-                        //    ChangeState(EnemyState.Attacking);
-                        //    break;
-                        //}
 
-                        if (AttackProximityCheck(out _))
+                        if (CanAttack(out _))
                         {
-                            currentFlipCooldown = 0;
+                            RemoveVelocity();
                             ChangeState(EnemyState.Attacking);
-                            return;
                         }
 
-                        else if (GroundCheck())
+                        else
                         {
 
-                            if (LedgeCheck())
+                            if (LedgeCheck() || WallCheck())
                             {
-                                if (IsPointInFront(collider.transform.position))
+                                if (EnemyData.WatchStateEnabled && IsPointInFront(collider.transform.position))
                                 {
+                                    RemoveVelocity();
                                     ChangeState(EnemyState.Watching);
-                                    return;
                                 }
 
                                 else
                                 {
-                                    FlipCharacter();
-                                    return;
+                                    RemoveVelocity();
+                                    PrepareFlipCharacter(EnemyData.ChaseFlipTime);
                                 }
                             }
 
-                            else if(!IsPointInFront(collider.transform.position)
-                                && currentFlipCooldown < Time.time)
+                            else if(!IsPointInFront(collider.transform.position))
                             {
-                                FlipCharacter();
-                                return;
+                                RemoveVelocity();
+                                PrepareFlipCharacter(EnemyData.ChaseFlipTime);
+                            }
+
+                            else
+                            {
+                                UpdateVelocity(new(HorizontalFacing, 0), EnemyData.ChaseSpeed);
                             }
                         }
-
-                        UpdateVelocity(new Vector2(HorizontalFacing, 0), EnemyData.ChaseSpeed);
                     }
 
                     else
                     {
-                        gizmoTarget = Vector3.zero;
+                        RemoveVelocity();
                         ChangeState(EnemyState.Sweeping);
-                        return;
                     }
 
-                    break;
+                    return;
 
                 case EnemyState.Sweeping:
                     if (SweepProximityCheck(out collider)
                         && SightCheck(collider.transform))
                     {
+                        RemoveVelocity();
                         ChangeState(EnemyState.Chasing);
-                        return;
                     }
 
                     else if (currentStateDuration < Time.time)
                     {
+                        RemoveVelocity();
                         ChangeState(EnemyState.Patrolling);
-                        return;
                     }
 
-                    else if (GroundCheck())
+                    else if (LedgeCheck() || WallCheck())
                     {
-
-                        if (LedgeCheck())
-                        {
-                            FlipCharacter();
-                        }
+                        RemoveVelocity();
+                        PrepareFlipCharacter(EnemyData.SweepFlipTime);
                     }
 
-                    UpdateVelocity(new Vector2(HorizontalFacing, 0), EnemyData.SweepSpeed);
+                    else
+                    {
+                        UpdateVelocity(new(HorizontalFacing, 0), EnemyData.SweepSpeed);
+                    }
 
-                    break;
+                    return;
 
                 case EnemyState.Attacking:
-                    if (currentAttackCooldown < Time.time)
+                    if (currentAttackAnimationTime < Time.time)
                     {
                         OnAttackComplete();
                         ChangeState(EnemyState.Chasing);
-                        return;
                     }
 
-                    break;
+                    return;
                 case EnemyState.Watching:
                     if (ChaseProximityCheck(out collider)
                         && SightCheck(collider.transform))
                     {
-                        if (!IsPointInFront(collider.transform.position))
+
+                        if (CanAttack(out _))
+                        {
+                            ChangeState(EnemyState.Attacking);
+                        }
+
+                        else if (!IsPointInFront(collider.transform.position))
                         {
                             ChangeState(EnemyState.Chasing);
-                            return;
                         }
                     }
 
@@ -222,15 +233,16 @@ namespace Enemy
                         ChangeState(EnemyState.Sweeping);
                     }
 
-                    break;
+                    return;
 
                 default: //EnemyState.Inactive:
-                    break;
+                    return;
             }
         }
 
         private void ChangeState(EnemyState state)
         {
+            isWaitingToFlip = false;
             currentStateDuration = 0;
 
             Debug.Log($"Switching state to: {state}");
@@ -246,10 +258,15 @@ namespace Enemy
                     currentStateDuration = EnemyData.SweepDuration + Time.time;
                     break;
                 case EnemyState.Attacking:
-                    currentAttackCooldown = attackLength + Time.time;
-                    UpdateVelocity(new Vector3(HorizontalFacing, 0), 0);
+                    currentAttackAnimationTime = attackAnimationLength + Time.time;
                     Animator.SetTrigger("Attack");
                     Debug.Log("Attacking");
+
+                    Vector2 direction = new Vector2(EnemyData.AttackForceDirection.x 
+                        * HorizontalFacing, EnemyData.AttackForceDirection.y).normalized;
+
+                    ApplyForce(direction, EnemyData.AttackForceSpeed);
+
                     break;
                 case EnemyState.Watching:
                     UpdateVelocity(new Vector2(HorizontalFacing, 0), 0);
@@ -261,7 +278,48 @@ namespace Enemy
             EnemyState = state;
         }
 
+        //private bool BeforeStateChange(EnemyState state)
+        //{
+        //    currentStateDuration = 0;
 
+        //    switch (state)
+        //    {
+        //        case EnemyState.Patrolling:
+        //            break;
+
+        //        case EnemyState.Chasing:
+        //            break;
+        //        case EnemyState.Sweeping:
+        //            currentStateDuration = EnemyData.SweepDuration + Time.time;
+        //            break;
+        //        case EnemyState.Attacking:
+        //            currentAttackCooldown = EnemyData.AttackCooldown + Time.time;
+        //            break;
+        //        case EnemyState.Watching:
+        //            UpdateVelocity(new Vector2(HorizontalFacing, 0), 0);
+        //            break;
+        //        default: //EnemyState.Inactive:
+        //            break;
+        //    }
+        //}
+
+        protected bool PrepareFlipCharacter(float flipTime)
+        {
+            if (!isWaitingToFlip)
+            {
+                isWaitingToFlip = true;
+                currentFlipWaitTime = flipTime + Time.time;
+            }
+
+            else if (currentFlipWaitTime < Time.time)
+            {
+                FlipCharacter();
+                isWaitingToFlip = false;
+                return true;
+            }
+
+            return false;
+        }
 
         protected void FlipCharacter()
         {
@@ -271,8 +329,6 @@ namespace Enemy
 
             HorizontalFacing = -HorizontalFacing;
             //Debug.Log($"Flipping horizontal direction to: {HorizontalFacing}");
-            currentFlipCooldown = EnemyData.FlipCooldown + Time.time;
-
         }
 
         private bool ColliderCheck(Collider2D sensor, ContactFilter2D filter, out Collider2D hitCollider)
@@ -314,6 +370,11 @@ namespace Enemy
             Rigidbody2D.velocity = direction * speed;
         }
 
+        protected void RemoveVelocity()
+        {
+            Rigidbody2D.velocity = Vector2.zero;
+        }
+
         private bool GroundCheck()
         {
             return ColliderCheck(GroundSensor, groundFilter, out _);
@@ -322,6 +383,11 @@ namespace Enemy
         private bool LedgeCheck()
         {
             return !ColliderCheck(LedgeSensor, groundFilter, out _);
+        }
+
+        private bool WallCheck()
+        {
+            return ColliderCheck(WallSensor, groundFilter, out _);
         }
 
         private bool PatrolProximityCheck(out Collider2D hitCollider)
@@ -339,8 +405,15 @@ namespace Enemy
             return ColliderCheck(SweepSensor, targetFilter, out hitCollider);
         }
 
-        private bool AttackProximityCheck(out Collider2D hitCollider)
+        private bool CanAttack(out Collider2D hitCollider)
         {
+            hitCollider = null;
+
+            if (currentAttackCooldown > Time.time)
+            {
+                return false;
+            }
+
             return ColliderCheck(AttackSensor, targetFilter, out hitCollider);
         }
 
@@ -375,7 +448,13 @@ namespace Enemy
         private void OnAttackComplete()
         {
             Debug.Log("Attack Completed");
+            currentAttackCooldown = EnemyData.AttackCooldown + Time.time;
             AttackParticles.Play();
+        }
+
+        private void ApplyForce(Vector2 direction, float speed)
+        {
+            Rigidbody2D.AddForce(direction * speed, ForceMode2D.Impulse);
         }
 
         private float GetClipLength(string clipName)
