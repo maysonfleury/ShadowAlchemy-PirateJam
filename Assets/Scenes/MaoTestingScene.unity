@@ -47116,7 +47116,7 @@ Transform:
   m_GameObject: {fileID: 1374329332}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 4.25, y: 2.6100006, z: 0}
+  m_LocalPosition: {x: 3.08, y: 2.6100006, z: 0}
   m_LocalScale: {x: 6, y: 5, z: 0.1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -48345,18 +48345,39 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4801138861297490173, guid: 27f6298eef12a0046a9822b363ab1df0, type: 3}
+      propertyPath: <Animator>k__BackingField
+      value: 
+      objectReference: {fileID: 2656262071354187467}
+    - target: {fileID: 4801138861297490173, guid: 27f6298eef12a0046a9822b363ab1df0, type: 3}
       propertyPath: <AttackSensor>k__BackingField
       value: 
       objectReference: {fileID: 1374329334}
     - target: {fileID: 6415481668770655905, guid: 27f6298eef12a0046a9822b363ab1df0, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6415481668770655905, guid: 27f6298eef12a0046a9822b363ab1df0, type: 3}
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 22100000, guid: a8078b7ea85415b4792180c8dfcf426c, type: 2}
+    - target: {fileID: 6415481668770655905, guid: 27f6298eef12a0046a9822b363ab1df0, type: 3}
+      propertyPath: m_UpdateMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6415481668770655905, guid: 27f6298eef12a0046a9822b363ab1df0, type: 3}
+      propertyPath: m_CullingMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6415481668770655905, guid: 27f6298eef12a0046a9822b363ab1df0, type: 3}
+      propertyPath: m_ApplyRootMotion
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8424073723338064766, guid: 27f6298eef12a0046a9822b363ab1df0, type: 3}
       propertyPath: m_Name
       value: SpiderEnemy
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3280752511008411149, guid: 27f6298eef12a0046a9822b363ab1df0, type: 3}
     m_RemovedGameObjects:
     - {fileID: 7921763234269430296, guid: 27f6298eef12a0046a9822b363ab1df0, type: 3}
     m_AddedGameObjects:
@@ -48368,6 +48389,11 @@ PrefabInstance:
 --- !u!4 &2656262071354187466 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1945688647012874718, guid: 27f6298eef12a0046a9822b363ab1df0, type: 3}
+  m_PrefabInstance: {fileID: 2656262071354187465}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &2656262071354187467 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 6415481668770655905, guid: 27f6298eef12a0046a9822b363ab1df0, type: 3}
   m_PrefabInstance: {fileID: 2656262071354187465}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &3354089115562653457
