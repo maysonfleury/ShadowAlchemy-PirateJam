@@ -663,7 +663,7 @@ GameObject:
   - component: {fileID: 8585578638800487453}
   - component: {fileID: 683515663145306395}
   - component: {fileID: 793406007962767774}
-  - component: {fileID: 5125009464276349935}
+  - component: {fileID: 7555474895098492210}
   m_Layer: 15
   m_Name: BasicEnemy
   m_TagString: Untagged
@@ -805,7 +805,7 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
---- !u!95 &5125009464276349935
+--- !u!95 &7555474895098492210
 Animator:
   serializedVersion: 5
   m_ObjectHideFlags: 0
@@ -815,7 +815,7 @@ Animator:
   m_GameObject: {fileID: 4715086810438688670}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 8eee6d8edc6caef4a87d6a7117dc8697, type: 2}
+  m_Controller: {fileID: 22100000, guid: 4c492721c10160f43b6c466249dc11f1, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -6136,7 +6136,7 @@ Transform:
   m_GameObject: {fileID: 7525935562751793985}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.14, z: 0}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
