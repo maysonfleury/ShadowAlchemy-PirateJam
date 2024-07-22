@@ -59,7 +59,7 @@ namespace Enemy
 
         private ContactFilter2D groundFilter;
         private ContactFilter2D targetFilter;
-  
+
         private readonly Collider2D[] sensorResults = new Collider2D[50];
         private float currentStateDuration = 0.0f;
         private LayerMask sightOcclusionMask;
@@ -67,7 +67,6 @@ namespace Enemy
         private float attackAnimationLength = 0;
         private float currentAttackAnimationTime = 0;
         private float currentFlipWaitTime = 0;
-        //private float currentFlipCooldown = 0;
         private bool isWaitingToFlip = false;
 
         //debug
@@ -127,11 +126,18 @@ namespace Enemy
                     return;
 
                 case EnemyState.Chasing:
-                    if (ChaseProximityCheck(out collider)
+                    if (currentAttackCooldown > Time.time
+                        && !EnemyData.ChaseOnAttackCooldown)
+                    {
+                        RemoveVelocity();
+                    }
+
+                    else if (ChaseProximityCheck(out collider)
                         && SightCheck(collider.transform))
                     {
 
-                        if (CanAttack(out _))
+                        if (AttackProximityCheck(out _) 
+                            && currentAttackCooldown < Time.time)
                         {
                             RemoveVelocity();
                             ChangeState(EnemyState.Attacking);
@@ -142,7 +148,8 @@ namespace Enemy
 
                             if (LedgeCheck() || WallCheck())
                             {
-                                if (EnemyData.WatchStateEnabled && IsPointInFront(collider.transform.position))
+                                if (EnemyData.WatchStateEnabled 
+                                    && IsPointInFront(collider.transform.position))
                                 {
                                     RemoveVelocity();
                                     ChangeState(EnemyState.Watching);
@@ -212,11 +219,14 @@ namespace Enemy
 
                     return;
                 case EnemyState.Watching:
+                    //TODO: Add state duration
+
                     if (ChaseProximityCheck(out collider)
                         && SightCheck(collider.transform))
                     {
 
-                        if (CanAttack(out _))
+                        if (AttackProximityCheck(out _) 
+                            && currentAttackCooldown < Time.time)
                         {
                             ChangeState(EnemyState.Attacking);
                         }
@@ -224,6 +234,11 @@ namespace Enemy
                         else if (!IsPointInFront(collider.transform.position))
                         {
                             ChangeState(EnemyState.Chasing);
+                        }
+
+                        else
+                        {
+                            RemoveVelocity();
                         }
                     }
 
@@ -252,6 +267,7 @@ namespace Enemy
                     break;
 
                 case EnemyState.Chasing:
+                    currentAttackCooldown = EnemyData.AttackCooldown + Time.time;
                     break;
                 case EnemyState.Sweeping:
                     currentStateDuration = EnemyData.SweepDuration + Time.time;
@@ -403,15 +419,8 @@ namespace Enemy
             return ColliderCheck(SweepSensor, targetFilter, out hitCollider);
         }
 
-        private bool CanAttack(out Collider2D hitCollider)
+        private bool AttackProximityCheck(out Collider2D hitCollider)
         {
-            hitCollider = null;
-
-            if (currentAttackCooldown > Time.time)
-            {
-                return false;
-            }
-
             return ColliderCheck(AttackSensor, targetFilter, out hitCollider);
         }
 
