@@ -21,7 +21,7 @@ namespace Enemy
     [RequireComponent(typeof(Animator))]
     [RequireComponent(typeof(Rigidbody2D))]
     [RequireComponent(typeof(Collider2D))]
-    public class EnemyController : MonoBehaviour
+    public class EnemyController : MonoBehaviour, IHealth
     {
 
         public Rigidbody2D Rigidbody2D { get; private set; }
@@ -66,9 +66,8 @@ namespace Enemy
         private float currentAttackCooldown = 0;
         private float attackAnimationLength = 0;
         private float currentAttackAnimationTime = 0;
-        private float speedThisFrame = 0;
         private float currentFlipWaitTime = 0;
-        private float currentFlipCooldown = 0;
+        //private float currentFlipCooldown = 0;
         private bool isWaitingToFlip = false;
 
         //debug
@@ -469,7 +468,6 @@ namespace Enemy
             {
                 Gizmos.color = Color.red;
                 Gizmos.DrawLine(SightPivot.position, gizmoTarget);
-
                 Gizmos.DrawSphere(gizmoTarget, 0.2f);
             }
         }
@@ -479,6 +477,22 @@ namespace Enemy
             float new_x = HorizontalFacing * forceSO.Direction.x;
             Vector2 velocity = new Vector2(new_x, forceSO.Direction.y).normalized * forceSO.Speed;
             Rigidbody2D.AddForce(velocity, forceSO.ForceMode);
+        }
+
+        public void FireProjectile(ProjectileSO projectileSO)
+        {
+            Projectile projectile = Instantiate(PrefabManager.Instance.Projectile);
+            projectile.Initialize(projectileSO, AttackPivot.transform.position, new(HorizontalFacing, 0));
+        }
+
+        public void DamageHealth(float damageAmount)
+        {
+            Debug.Log("Enemy Hit");
+        }
+
+        public void HealHealth(float healAmount)
+        {
+            throw new NotImplementedException();
         }
     }
 }
