@@ -151,7 +151,7 @@ Transform:
   m_GameObject: {fileID: 16332800}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -3.03, y: 0.28, z: 0}
+  m_LocalPosition: {x: -3.03, y: 0.22, z: 0}
   m_LocalScale: {x: 28.6, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -15378,7 +15378,7 @@ Transform:
   m_GameObject: {fileID: 364893235}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 17.7, y: 0.22391033, z: 0}
+  m_LocalPosition: {x: 17.7, y: 0.22, z: 0}
   m_LocalScale: {x: 12.940019, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -48968,6 +48968,38 @@ PrefabInstance:
     - target: {fileID: 1301348756581416277, guid: 14fca4ecf6b94994492109e68b7b31e8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1305119314430194691, guid: 14fca4ecf6b94994492109e68b7b31e8, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2251346145308391200, guid: 14fca4ecf6b94994492109e68b7b31e8, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4578305910575768001, guid: 14fca4ecf6b94994492109e68b7b31e8, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5453360055504985206, guid: 14fca4ecf6b94994492109e68b7b31e8, type: 3}
+      propertyPath: <EnemyData>k__BackingField.<ChaseOnAttackCooldown>k__BackingField
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7424011018284569427, guid: 14fca4ecf6b94994492109e68b7b31e8, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8292030869823753943, guid: 14fca4ecf6b94994492109e68b7b31e8, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8805649086269470652, guid: 14fca4ecf6b94994492109e68b7b31e8, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8993917049785419568, guid: 14fca4ecf6b94994492109e68b7b31e8, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9072354267873708021, guid: 14fca4ecf6b94994492109e68b7b31e8, type: 3}
       propertyPath: m_Name

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
@@ -16,6 +17,7 @@ public class Projectile : MonoBehaviour
     ContactFilter2D collisionMask;
 
     private readonly Collider2D[] colliders = new Collider2D[50];
+    private readonly HashSet<Collider2D> previousHits = new(50);
     private float currentExpireTime = 0;
     private Vector2 currentDirection;
 
@@ -61,10 +63,13 @@ public class Projectile : MonoBehaviour
         {
             for (int i = 0; i < numColliders; i++)
             {
-                if (colliders[i].TryGetComponent(out IHealth target))
+                if (!previousHits.Contains(colliders[i]) 
+                    && colliders[i].TryGetComponent(out IHealth target))
                 {
                     OnHit(target);
                 }
+
+                previousHits.Add(colliders[i]);
             }
         }
 

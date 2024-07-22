@@ -1,10 +1,5 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
-using UnityEditor.Hardware;
 using UnityEngine;
-using static Unity.VisualScripting.Member;
 
 namespace Enemy
 {
@@ -35,6 +30,7 @@ namespace Enemy
         [field: Space]
         [field: Header("Enemy Pivots")]
         [field: SerializeField] public Transform AttackPivot { get; private set; }
+        [field: SerializeField] public Transform FirePoint { get; private set; }
         [field: SerializeField] public Transform SightPivot { get; private set; }
 
         [field: Space]
@@ -68,6 +64,7 @@ namespace Enemy
         private float currentAttackAnimationTime = 0;
         private float currentFlipWaitTime = 0;
         private bool isWaitingToFlip = false;
+        private Vector2 lastTargetDirection = Vector2.zero;
 
         //debug
         private Vector3 gizmoTarget;
@@ -135,6 +132,12 @@ namespace Enemy
                     else if (ChaseProximityCheck(out collider)
                         && SightCheck(collider.transform))
                     {
+                        bool targetIsInFront = IsPointInFront(collider.transform.position);
+
+                        if(targetIsInFront)
+                        {
+                            RotateAttackPivotTowards(collider.transform.position);
+                        }
 
                         if (AttackProximityCheck(out _) 
                             && currentAttackCooldown < Time.time)
@@ -148,8 +151,7 @@ namespace Enemy
 
                             if (LedgeCheck() || WallCheck())
                             {
-                                if (EnemyData.WatchStateEnabled 
-                                    && IsPointInFront(collider.transform.position))
+                                if (EnemyData.WatchStateEnabled && targetIsInFront)
                                 {
                                     RemoveVelocity();
                                     ChangeState(EnemyState.Watching);
@@ -162,7 +164,7 @@ namespace Enemy
                                 }
                             }
 
-                            else if(!IsPointInFront(collider.transform.position))
+                            else if(!targetIsInFront)
                             {
                                 RemoveVelocity();
                                 PrepareFlipCharacter(EnemyData.ChaseFlipTime);
@@ -264,12 +266,14 @@ namespace Enemy
             switch (state)
             {
                 case EnemyState.Patrolling:
+                    RotateAttackPivotTowards(new Vector2(HorizontalFacing, 0) + (Vector2)AttackPivot.position);
                     break;
 
                 case EnemyState.Chasing:
                     currentAttackCooldown = EnemyData.AttackCooldown + Time.time;
                     break;
                 case EnemyState.Sweeping:
+                    RotateAttackPivotTowards(new Vector2(HorizontalFacing, 0) + (Vector2)AttackPivot.position);
                     currentStateDuration = EnemyData.SweepDuration + Time.time;
                     break;
                 case EnemyState.Attacking:
@@ -283,6 +287,7 @@ namespace Enemy
 
                     break;
                 case EnemyState.Watching:
+                    RotateAttackPivotTowards(new Vector2(HorizontalFacing, 0) + (Vector2)AttackPivot.position);
                     UpdateVelocity(new Vector2(HorizontalFacing, 0), 0);
                     break;
                 default: //EnemyState.Inactive:
@@ -442,9 +447,24 @@ namespace Enemy
             else return false;
         }
 
-        private Vector2 GetDirection(Vector2 pointA, Vector2 pointB)
+        private void RotateAttackPivotTowards(Vector2 targetPoint)
         {
-            return pointB - pointA;
+            Vector2 direction = GetDirection(AttackPivot.position, targetPoint) * HorizontalFacing;
+
+            const float angle = 75;
+
+            if (direction != Vector2.zero)
+            {
+                float targetAngle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+                float clampedAngle = Mathf.Clamp(targetAngle, -angle, angle);
+                Quaternion targetRotation = Quaternion.Euler(0, 0, clampedAngle);
+                AttackPivot.rotation = targetRotation;
+            }
+        }
+
+        private Vector2 GetDirection(Vector2 startPoint, Vector2 endPoint)
+        {
+            return endPoint - startPoint;
         }
 
         private float GetDistance(Vector2 pointA, Vector2 pointB)
@@ -475,7 +495,7 @@ namespace Enemy
         {
             if (gizmoTarget != Vector3.zero)
             {
-                Gizmos.color = Color.red;
+                Gizmos.color = UnityEngine.Color.red;
                 Gizmos.DrawLine(SightPivot.position, gizmoTarget);
                 Gizmos.DrawSphere(gizmoTarget, 0.2f);
             }
@@ -491,7 +511,8 @@ namespace Enemy
         public void FireProjectile(ProjectileSO projectileSO)
         {
             Projectile projectile = Instantiate(PrefabManager.Instance.Projectile);
-            projectile.Initialize(projectileSO, AttackPivot.transform.position, new(HorizontalFacing, 0));
+            Vector2 dir = AttackPivot.right * HorizontalFacing;
+            projectile.Initialize(projectileSO, AttackPivot.transform.position, dir);
         }
 
         public void DamageHealth(float damageAmount)
