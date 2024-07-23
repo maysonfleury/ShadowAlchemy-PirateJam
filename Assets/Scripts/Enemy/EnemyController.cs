@@ -610,5 +610,17 @@ namespace Enemy
             Vector2 velocity = new Vector2(new_x, forceSO.Direction.y).normalized * forceSO.Speed;
             Rigidbody.AddForce(velocity, forceSO.ForceMode);
         }
+
+        public void ApplyRelativeForce(float forward, ForceSO forceSO)
+        {
+            if(forward == 0)
+            {
+                forward = 1;
+            }
+
+            float new_x = forward * forceSO.Direction.x;
+            Vector2 velocity = new Vector2(new_x, forceSO.Direction.y).normalized * forceSO.Speed;
+            Rigidbody.AddForce(velocity, forceSO.ForceMode);
+        }
     }
 }

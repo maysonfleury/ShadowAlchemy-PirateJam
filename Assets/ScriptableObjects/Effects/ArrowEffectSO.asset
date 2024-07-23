@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ceccf5e2d3c046c43a5c0264ed903db6, type: 3}
-  m_Name: SkeletonArcherProjectileHit
+  m_Name: ArrowEffectSO
   m_EditorClassIdentifier: 
   <Damage>k__BackingField: 5
   <StunData>k__BackingField:

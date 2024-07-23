@@ -97,11 +97,10 @@ public class Projectile : MonoBehaviour
 
         if (target.TryGetComponent(out IMovable movable))
         {
-            //TODO: Force should be relative to projectile location
 
             if (ProjectileSO.ForceOnHit != null)
             {
-                //effectable.ApplyEffect(ProjectileSO.EffectOnHit);
+                movable.ApplyRelativeForce(Rigidbody.velocity.x, ProjectileSO.ForceOnHit);
             }
         }
     }

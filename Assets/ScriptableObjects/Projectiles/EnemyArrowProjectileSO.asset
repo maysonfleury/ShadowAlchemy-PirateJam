@@ -10,10 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8b22fa36e2bfd904abd572969a0f1ea5, type: 3}
-  m_Name: SkeletonArcherArrow
+  m_Name: EnemyArrowProjectileSO
   m_EditorClassIdentifier: 
-  <ProjectileDamage>k__BackingField: 1
-  <ProjectileSpeed>k__BackingField: 5
+  <Speed>k__BackingField: 5
+  <Duration>k__BackingField: 5
+  <EffectOnHit>k__BackingField: {fileID: 0}
+  <ForceOnHit>k__BackingField: {fileID: 11400000, guid: 7c092a7171ee0634d9d38e409b94c53a, type: 2}
   <CollisionMasks>k__BackingField:
   - serializedVersion: 2
     m_Bits: 16448
