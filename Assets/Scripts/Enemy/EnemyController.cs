@@ -13,6 +13,7 @@ namespace Enemy
         Sweeping,
         Watching,
         Attacking,
+        Dying,
     }
 
     [RequireComponent(typeof(Animator))]
@@ -298,7 +299,13 @@ namespace Enemy
                     {
                         ChangeState(EnemyState.Sweeping);
                     }
+                    return;
 
+                case EnemyState.Dying:
+                    if (currentStateDuration < Time.time)
+                    {
+                        KillEnemy();
+                    }
                     return;
 
                 default: //EnemyState.Inactive:
@@ -344,6 +351,10 @@ namespace Enemy
                 case EnemyState.Watching:
                     ResetAttackPivot();
                     UpdateVelocity(new Vector2(HorizontalFacing, 0), 0);
+                    break;
+
+                case EnemyState.Dying:
+                    currentStateDuration = EnemyData.DyingDuration + Time.time;
                     break;
                 default: //EnemyState.Inactive:
                     break;
@@ -621,6 +632,12 @@ namespace Enemy
             float new_x = forward * forceSO.Direction.x;
             Vector2 velocity = new Vector2(new_x, forceSO.Direction.y).normalized * forceSO.Speed;
             Rigidbody.AddForce(velocity, forceSO.ForceMode);
+        }
+
+        private void KillEnemy()
+        {
+            gameObject.SetActive(false);
+            Destroy(gameObject);
         }
     }
 }

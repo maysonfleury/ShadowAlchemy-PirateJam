@@ -47,5 +47,9 @@ namespace Enemy
         [field: Space]
         [field: Header("Watch State")]
         [field: SerializeField] public bool HasWatchState { get; private set; } = true;
+
+        [field: Space]
+        [field: Header("Dying State")]
+        [field: SerializeField] public float DyingDuration { get; private set; } = 2.0f;
     }
 }
