@@ -17,8 +17,19 @@ public class SkeletonController : MonoBehaviour
     public float coyoteFrames = 50;
 
     [Space]
+    [Header("Combat")]
+    public Collider2D attackHitbox;
+    public float attackCooldown = 1f;
+    public float attackRange = 1f;
+    public float floorHeight = -0.55f;
+    public float feetHeight = -1.4f;
+    public float headHeight = 1.2f;
+    public float hitBoxSize = 0.8f;
+
+    [Space]
     [Header("Booleans")]
-    public bool canMove;
+    public bool canMove = true;
+    public bool canAttack = true;
 
     [Space]
 
@@ -30,6 +41,7 @@ public class SkeletonController : MonoBehaviour
     [Space]
     [Header("Polish")]
     public ParticleSystem jumpParticle;
+    public ParticleSystem attackParticle;
     //public ParticleSystem wallJumpParticle;
     //public ParticleSystem slideParticle;
 
@@ -50,6 +62,7 @@ public class SkeletonController : MonoBehaviour
         Vector2 dir = new Vector2(x, y);
 
         Movement(dir);
+        //Aim();
 
         if (coll.onGround)
         {
@@ -64,6 +77,14 @@ public class SkeletonController : MonoBehaviour
                 Jump(Vector2.up, false);
             else
                 StartCoroutine(JumpBuffer(jumpBufferFrames));
+        }
+
+        if (Input.GetButtonDown("Fire1"))
+        {
+            //anim.SetTrigger("attack");
+
+            if (canAttack)
+                Attack();
         }
 
         //if (Input.GetButtonDown("Fire3") && !hasDashed)
@@ -101,6 +122,58 @@ public class SkeletonController : MonoBehaviour
             //anim.Flip(side);
         }
     }
+
+    //******************************
+    //*         Attacking          *
+    //******************************
+
+    private void Aim()
+    {
+        // Get direction of cursor in relation to character model
+        Vector3 cursorPosCam = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 15f));
+        Vector3 cursorPos = cursorPosCam + (Camera.main.transform.forward * 15.0f);
+        Vector3 aimDir = (cursorPos - gameObject.transform.position).normalized * 10f;
+
+        // Don't hit the floor beneath you
+        if (coll.onGround)
+            aimDir.y = Mathf.Clamp(aimDir.y, floorHeight, attackRange);
+        else
+            aimDir.y = Mathf.Clamp(aimDir.y, feetHeight, attackRange);
+
+        // Don't hit yourself
+        if (Mathf.Abs(aimDir.y) < headHeight)
+            aimDir.x = Mathf.Clamp(Mathf.Abs(aimDir.x), hitBoxSize, attackRange) * Mathf.Sign(aimDir.x);
+        else
+            aimDir.x = Mathf.Clamp(Mathf.Abs(aimDir.x), 0f, attackRange) * Mathf.Sign(aimDir.x);
+        aimDir.z = 0;
+
+        // Okay now aim
+        attackHitbox.enabled = true;
+        attackHitbox.transform.localPosition = aimDir;
+    }
+
+    private void Attack()
+    {
+        Aim();
+        canAttack = false;
+        attackParticle.Play();
+        Invoke(nameof(ResetAttack), attackCooldown);
+        Invoke(nameof(DisableHitbox), 0.2f);
+    }
+
+    private void ResetAttack()
+    {
+        canAttack = true;
+    }
+
+    private void DisableHitbox()
+    {
+        attackHitbox.enabled = false;
+    }
+
+    //*****************************
+    //*         Movement          *
+    //*****************************
 
     void GroundTouch()
     {

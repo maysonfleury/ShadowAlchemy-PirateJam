@@ -19,8 +19,8 @@ public class BatController : MonoBehaviour
 
     [Space]
     [Header("Booleans")]
-    public bool canMove;
-    public bool canJump;
+    public bool canMove = true;
+    public bool canJump = true;
 
     [Space]
 
@@ -124,6 +124,12 @@ public class BatController : MonoBehaviour
         }
         //Debug.Log("Jump buffer frameAmount elapsed, no longer buffering jump.");
         yield return null;
+    }
+
+    public void DisableMovementForSeconds(float seconds)
+    {
+        StopCoroutine(DisableMovement(0f));
+        StartCoroutine(DisableMovement(seconds));
     }
 
     IEnumerator DisableMovement(float time)

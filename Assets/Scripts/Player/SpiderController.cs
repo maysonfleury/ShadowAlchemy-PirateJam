@@ -20,7 +20,7 @@ public class SpiderController : MonoBehaviour
 
     [Space]
     [Header("Booleans")]
-    public bool canMove;
+    public bool canMove = true;
     public bool wallGrab;
     public bool wallJumped;
     public bool isDashing;
@@ -107,6 +107,7 @@ public class SpiderController : MonoBehaviour
             if (coll.onWall && !coll.onGround)
                 WallJump();
         }
+        
 
         if (Input.GetButtonDown("Fire3") && !hasDashed)
         {
@@ -242,6 +243,12 @@ public class SpiderController : MonoBehaviour
         rb.velocity += dir * jumpForce;
 
         jumpParticle.Play(); // remove when adding wallJumpParticle
+    }
+
+    public void DisableMovementForSeconds(float seconds)
+    {
+        StopCoroutine(DisableMovement(0f));
+        StartCoroutine(DisableMovement(seconds));
     }
 
     IEnumerator DisableMovement(float time)
