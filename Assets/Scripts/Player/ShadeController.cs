@@ -19,12 +19,21 @@ public class ShadeController : MonoBehaviour
     public float wallSlideSpeed = 1;
     public float wallJumpControl = 3.75f;
     public float dashSpeed = 50;
+
+    [Space]
+    [Header("Combat")]
+    public Collider2D attackHitbox;
     public float attackCooldown = 1f;
+    public float attackRange = 1f;
+    public float floorHeight = -0.55f;
+    public float feetHeight = -1.4f;
+    public float headHeight = 1.2f;
+    public float hitBoxSize = 0.8f;
 
     [Space]
     [Header("Booleans")]
-    public bool canMove;
-    public bool canAttack;
+    public bool canMove = true;
+    public bool canAttack = true;
     public bool wallJumped;
     public bool wallSlide;
     public bool isDashing;
@@ -42,6 +51,8 @@ public class ShadeController : MonoBehaviour
     public ParticleSystem dashParticle;
     public ParticleSystem jumpParticle;
     public ParticleSystem attackParticle;
+    public GameObject shadeModel;
+    public float rotateTime = 10f;
     //public ParticleSystem wallJumpParticle;
     //public ParticleSystem slideParticle;
 
@@ -62,7 +73,7 @@ public class ShadeController : MonoBehaviour
         Vector2 dir = new Vector2(x, y);
 
         Movement(dir);
-        Aim();
+        //Aim();
 
         if (coll.onGround && !isDashing)
         {
@@ -130,13 +141,73 @@ public class ShadeController : MonoBehaviour
         {
             side = 1;
             //anim.Flip(side);
+            if (!coll.onWall)
+                shadeModel.transform.DOLocalRotate(new Vector3(0, 0, -10), Time.deltaTime * rotateTime);
         }
         if (x < 0)
         {
             side = -1;
             //anim.Flip(side);
+            if (!coll.onWall)
+                shadeModel.transform.DOLocalRotate(new Vector3(0, 0, 10), Time.deltaTime * rotateTime);
+        }
+        if (xRaw == 0 || coll.onWall)
+        {
+            shadeModel.transform.DOLocalRotate(Vector3.zero, Time.deltaTime * rotateTime);
         }
     }
+
+    //******************************
+    //*         Attacking          *
+    //******************************
+
+    private void Aim()
+    {
+        // Get direction of cursor in relation to character model
+        Vector3 cursorPosCam = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 15f));
+        Vector3 cursorPos = cursorPosCam + (Camera.main.transform.forward * 15.0f);
+        Vector3 aimDir = (cursorPos - gameObject.transform.position).normalized * 10f;
+
+        // Don't hit the floor beneath you
+        if (coll.onGround)
+            aimDir.y = Mathf.Clamp(aimDir.y, floorHeight, attackRange + (attackRange * 0.4f));
+        else
+            aimDir.y = Mathf.Clamp(aimDir.y, feetHeight, attackRange + (attackRange * 0.4f));
+
+        // Don't hit yourself
+        if (Mathf.Abs(aimDir.y) < headHeight)
+            aimDir.x = Mathf.Clamp(Mathf.Abs(aimDir.x), hitBoxSize, attackRange) * Mathf.Sign(aimDir.x);
+        else
+            aimDir.x = Mathf.Clamp(Mathf.Abs(aimDir.x), 0f, attackRange) * Mathf.Sign(aimDir.x);
+        aimDir.z = 0;
+
+        // Okay now aim
+        attackHitbox.enabled = true;
+        attackHitbox.transform.localPosition = aimDir;
+    }
+
+    private void Attack()
+    {
+        Aim();
+        canAttack = false;
+        attackParticle.Play();
+        Invoke(nameof(ResetAttack), attackCooldown);
+        Invoke(nameof(DisableHitbox), 0.2f);
+    }
+
+    private void ResetAttack()
+    {
+        canAttack = true;
+    }
+
+    private void DisableHitbox()
+    {
+        attackHitbox.enabled = false;
+    }
+
+    //*****************************
+    //*         Movement          *
+    //*****************************
 
     void GroundTouch()
     {
@@ -148,45 +219,15 @@ public class ShadeController : MonoBehaviour
         jumpParticle.Play();
     }
 
-    private void Aim()
-    {
-        Vector3 cursorPosCam = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 15f));
-        Vector3 cursorPos = cursorPosCam + (Camera.main.transform.forward * 15.0f);
-        Vector3 aimDir = (cursorPos - gameObject.transform.position).normalized * 10f;
-        if (coll.onGround)
-            aimDir.y = Mathf.Clamp(aimDir.y, -0.53f, 1.4f);
-        else
-            aimDir.y = Mathf.Clamp(aimDir.y, -1.4f, 1.4f);
-        if (Mathf.Abs(aimDir.y) < 1.2f)
-            aimDir.x = Mathf.Clamp(Math.Abs(aimDir.x), 0.8f, 1f) * Mathf.Sign(aimDir.x);
-        else
-            aimDir.x = Mathf.Clamp(Math.Abs(aimDir.x), 0f, 1f) * Mathf.Sign(aimDir.x);
-        aimDir.z = 0;
-        Transform attackVisual = attackParticle.transform.parent.transform;
-        attackVisual.localPosition = aimDir;
-    }
-
-    private void Attack()
-    {
-        canAttack = false;
-        attackParticle.Play();
-        Invoke("ResetAttack", attackCooldown);
-    }
-
-    private void ResetAttack()
-    {
-        canAttack = true;
-    }
-
     private void Dash(float x, float y)
     {
+        //anim.SetTrigger("dash");
+
         Camera.main.transform.DOComplete();
         Camera.main.transform.DOShakePosition(.2f, .5f, 14, 90, false, true);
         FindObjectOfType<RippleEffect>().Emit(Camera.main.WorldToViewportPoint(transform.position));
 
         hasDashed = true;
-
-        //anim.SetTrigger("dash");
 
         rb.velocity = Vector2.zero;
         Vector2 dir = new Vector2(x, y);
@@ -206,7 +247,8 @@ public class ShadeController : MonoBehaviour
         GetComponent<GravityController>().enabled = false;
         wallJumped = true;
         isDashing = true;
-
+        
+        //shadeModel.GetComponent<Renderer>().material.DOFade()
         yield return new WaitForSeconds(.3f);
 
         //dashParticle.Stop();
@@ -275,7 +317,7 @@ public class ShadeController : MonoBehaviour
         }
         else
         {
-            rb.velocity = Vector2.Lerp(rb.velocity, (new Vector2(dir.x * walkSpeed, rb.velocity.y)), wallJumpControl * Time.deltaTime);
+            rb.velocity = Vector2.Lerp(rb.velocity, new Vector2(dir.x * walkSpeed, rb.velocity.y), wallJumpControl * Time.deltaTime);
         }
     }
 
@@ -326,6 +368,12 @@ public class ShadeController : MonoBehaviour
         //Debug.Log("Coyote Time elapsed, can no longer jump.");
         coyoteEnabled = false;
         yield return null;
+    }
+
+    public void DisableMovementForSeconds(float seconds)
+    {
+        StopCoroutine(DisableMovement(0f));
+        StartCoroutine(DisableMovement(seconds));
     }
 
     IEnumerator DisableMovement(float time)

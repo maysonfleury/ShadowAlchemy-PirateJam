@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Cinemachine;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerFormController : MonoBehaviour
@@ -19,11 +20,11 @@ public class PlayerFormController : MonoBehaviour
     private Transform currentTransform;
     public int currentHP;
 
-    [SerializeField] GameObject shadeObject;
-    [SerializeField] GameObject batObject;
-    [SerializeField] GameObject ratObject;
-    [SerializeField] GameObject spiderObject;
-    [SerializeField] GameObject skeletonObject;
+    [SerializeField] ShadeController shadeController;
+    [SerializeField] BatController batController;
+    [SerializeField] RatController ratController;
+    [SerializeField] SpiderController spiderController;
+    [SerializeField] SkeletonController skeletonController;
     [SerializeField] ParticleSystem possessParticle;
     
     private CinemachineVirtualCamera virtualCamera;
@@ -33,10 +34,9 @@ public class PlayerFormController : MonoBehaviour
     void Start()
     {
         virtualCamera = FindObjectOfType<CinemachineVirtualCamera>();
-        currentForm = PlayerForm.Shade;
-        currentTransform = shadeObject.transform;
-        currentHP = 1;
+        InitializeForm();
         canTakeDamage = true;
+        SetCameraTarget(currentTransform);
         //StartCoroutine(ChangeFormRoutine(PlayerForm.Spider, 5f));
         //StartCoroutine(ChangeFormRoutine(PlayerForm.Bat, 10f));
         //StartCoroutine(ChangeFormRoutine(PlayerForm.Rat, 5f));
@@ -44,14 +44,52 @@ public class PlayerFormController : MonoBehaviour
         //StartCoroutine(ChangeFormRoutine(PlayerForm.Shade, 25f));
     }
 
-    IEnumerator ChangeFormRoutine(PlayerForm form, float delay)
+    //IEnumerator ChangeFormRoutine(PlayerForm form, float delay)
+    //{
+    //    yield return new WaitForSeconds(delay);
+    //    ChangeForm(form, currentTransform.position);
+    //    yield return null;
+    //}
+
+    private void InitializeForm()
     {
-        yield return new WaitForSeconds(delay);
-        ChangeForm(form);
-        yield return null;
+        if (shadeController.gameObject.activeSelf == true)
+        {
+            currentHP = 1;
+            currentTransform = shadeController.transform;
+            currentForm = PlayerForm.Shade;
+        }
+        else if (batController.gameObject.activeSelf == true)
+        {
+            currentTransform = batController.transform;
+            currentHP = 1;
+            currentForm = PlayerForm.Bat;
+        }
+        else if (ratController.gameObject.activeSelf == true)
+        {
+            currentTransform = ratController.transform;
+            currentHP = 2;
+            currentForm = PlayerForm.Rat;
+        }
+        else if (spiderController.gameObject.activeSelf == true)
+        {
+            currentTransform = spiderController.transform;
+            currentHP = 2;
+            currentForm = PlayerForm.Spider;
+        }
+        else if (skeletonController.gameObject.activeSelf == true)
+        {
+            currentHP = 4;
+            currentTransform = skeletonController.transform;
+            currentForm = PlayerForm.Skeleton;
+        }
+        else
+        {
+            Debug.LogError("No Form is active.");
+        }
     }
 
-    public void ChangeForm(PlayerForm form)
+    public void ChangeForm(PlayerForm form, Vector3 newPosition)
     {
         if (form == currentForm)
             return;
@@ -62,52 +100,52 @@ public class PlayerFormController : MonoBehaviour
         switch (form)
         {
             case PlayerForm.Shade:
-                shadeObject.SetActive(true);
-                shadeObject.transform.position = currentTransform.position;
-                ChangeCameraTarget(shadeObject.transform);
+                shadeController.gameObject.SetActive(true);
+                shadeController.transform.position = currentTransform.position;
+                SetCameraTarget(shadeController.transform);
                 currentForm = PlayerForm.Shade;
                 currentTransform.gameObject.SetActive(false);
-                currentTransform = shadeObject.transform;
+                currentTransform = shadeController.transform;
                 currentHP = 1;
             break;
 
             case PlayerForm.Bat:
-                batObject.SetActive(true);
-                batObject.transform.position = currentTransform.position;
-                ChangeCameraTarget(batObject.transform);
+                batController.gameObject.SetActive(true);
+                batController.transform.position = currentTransform.position;
+                SetCameraTarget(batController.transform);
                 currentForm = PlayerForm.Bat;
                 currentTransform.gameObject.SetActive(false);
-                currentTransform = batObject.transform;
+                currentTransform = batController.transform;
                 currentHP = 1;
             break;
 
             case PlayerForm.Rat:
-                ratObject.SetActive(true);
-                ratObject.transform.position = currentTransform.position;
-                ChangeCameraTarget(ratObject.transform);
+                ratController.gameObject.SetActive(true);
+                ratController.transform.position = currentTransform.position;
+                SetCameraTarget(ratController.transform);
                 currentForm = PlayerForm.Rat;
                 currentTransform.gameObject.SetActive(false);
-                currentTransform = ratObject.transform;
+                currentTransform = ratController.transform;
                 currentHP = 2;
             break;
 
             case PlayerForm.Spider:
-                spiderObject.SetActive(true);
-                spiderObject.transform.position = currentTransform.position;
-                ChangeCameraTarget(spiderObject.transform);
+                spiderController.gameObject.SetActive(true);
+                spiderController.transform.position = currentTransform.position;
+                SetCameraTarget(spiderController.transform);
                 currentForm = PlayerForm.Spider;
                 currentTransform.gameObject.SetActive(false);
-                currentTransform = spiderObject.transform;
+                currentTransform = spiderController.transform;
                 currentHP = 2;
             break;
 
             case PlayerForm.Skeleton:
-                skeletonObject.SetActive(true);
-                skeletonObject.transform.position = currentTransform.position;
-                ChangeCameraTarget(skeletonObject.transform);
+                skeletonController.gameObject.SetActive(true);
+                skeletonController.transform.position = currentTransform.position;
+                SetCameraTarget(skeletonController.transform);
                 currentForm = PlayerForm.Skeleton;
                 currentTransform.gameObject.SetActive(false);
-                currentTransform = skeletonObject.transform;
+                currentTransform = skeletonController.transform;
                 currentHP = 4;
             break;
         }
@@ -126,7 +164,7 @@ public class PlayerFormController : MonoBehaviour
         }
         else if (currentForm != PlayerForm.Shade && currentHP == 1)
         {
-            ChangeForm(PlayerForm.Shade);
+            ChangeForm(PlayerForm.Shade, currentTransform.position);
         }
         else if (currentHP > 1)
         {
@@ -167,7 +205,7 @@ public class PlayerFormController : MonoBehaviour
         canTakeDamage = true;
     }
 
-    private void ChangeCameraTarget(Transform newTarget)
+    private void SetCameraTarget(Transform newTarget)
     {
         virtualCamera.m_Follow = newTarget;
         virtualCamera.m_LookAt = newTarget;

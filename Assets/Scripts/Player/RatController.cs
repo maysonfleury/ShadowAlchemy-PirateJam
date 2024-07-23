@@ -10,7 +10,7 @@ public class RatController : MonoBehaviour
     public Rigidbody2D rb;
 
     [Space]
-    [Header("Stats")]
+    [Header("Movement")]
     public float walkSpeed = 10;
     public float jumpForce = 11;
     public float jumpBufferFrames = 50;
@@ -20,8 +20,19 @@ public class RatController : MonoBehaviour
     //public float dashSpeed = 50;
 
     [Space]
+    [Header("Combat")]
+    public Collider2D attackHitbox;
+    public float attackCooldown = 1f;
+    public float attackRange = 1f;
+    public float floorHeight = -0.55f;
+    public float feetHeight = -1.4f;
+    public float headHeight = 1.2f;
+    public float hitBoxSize = 0.8f;
+
+    [Space]
     [Header("Booleans")]
-    public bool canMove;
+    public bool canMove = true;
+    public bool canAttack = true;
     public bool wallJumped;
     public bool wallSlide;
     //public bool isDashing;
@@ -38,6 +49,7 @@ public class RatController : MonoBehaviour
     [Space]
     [Header("Polish")]
     public ParticleSystem jumpParticle;
+    public ParticleSystem attackParticle;
     //public ParticleSystem wallJumpParticle;
     //public ParticleSystem slideParticle;
 
@@ -58,6 +70,7 @@ public class RatController : MonoBehaviour
         Vector2 dir = new Vector2(x, y);
 
         Movement(dir);
+        //Aim();
 
         if (coll.onGround) //&& !isDashing)
         {
@@ -92,6 +105,14 @@ public class RatController : MonoBehaviour
             }
             else
                 StartCoroutine(JumpBuffer(jumpBufferFrames));
+        }
+
+        if (Input.GetButtonDown("Fire1"))
+        {
+            //anim.SetTrigger("attack");
+
+            if (canAttack)
+                Attack();
         }
 
         //if (Input.GetButtonDown("Fire3") && !hasDashed)
@@ -129,6 +150,58 @@ public class RatController : MonoBehaviour
             //anim.Flip(side);
         }
     }
+
+    //******************************
+    //*         Attacking          *
+    //******************************
+
+    private void Aim()
+    {
+        // Get direction of cursor in relation to character model
+        Vector3 cursorPosCam = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 15f));
+        Vector3 cursorPos = cursorPosCam + (Camera.main.transform.forward * 15.0f);
+        Vector3 aimDir = (cursorPos - gameObject.transform.position).normalized * 10f;
+
+        //// Don't hit the floor beneath you
+        //if (coll.onGround)
+        //    aimDir.y = Mathf.Clamp(aimDir.y, floorHeight, attackRange - (attackRange * 0.4f));
+        //else
+        aimDir.y = Mathf.Clamp(aimDir.y, attackRange * -0.5f, attackRange * 0.5f);
+
+        // Don't hit yourself
+        if (Mathf.Abs(aimDir.y) < headHeight)
+            aimDir.x = Mathf.Clamp(Mathf.Abs(aimDir.x), hitBoxSize, attackRange) * Mathf.Sign(aimDir.x);
+        else
+            aimDir.x = Mathf.Clamp(Mathf.Abs(aimDir.x), 0f, attackRange) * Mathf.Sign(aimDir.x);
+        aimDir.z = 0;
+
+        // Okay now aim
+        attackHitbox.enabled = true;
+        attackHitbox.transform.localPosition = aimDir;
+    }
+
+    private void Attack()
+    {
+        Aim();
+        canAttack = false;
+        attackParticle.Play();
+        Invoke(nameof(ResetAttack), attackCooldown);
+        Invoke(nameof(DisableHitbox), 0.2f);
+    }
+
+    private void ResetAttack()
+    {
+        canAttack = true;
+    }
+
+    private void DisableHitbox()
+    {
+        attackHitbox.enabled = false;
+    }
+
+    //*****************************
+    //*         Movement          *
+    //*****************************
 
     void GroundTouch()
     {
@@ -256,6 +329,12 @@ public class RatController : MonoBehaviour
         //Debug.Log("Coyote Time elapsed, can no longer jump.");
         coyoteEnabled = false;
         yield return null;
+    }
+
+    public void DisableMovementForSeconds(float seconds)
+    {
+        StopCoroutine(DisableMovement(0f));
+        StartCoroutine(DisableMovement(seconds));
     }
 
     IEnumerator DisableMovement(float time)
