@@ -18,9 +18,14 @@ namespace Enemy
         [field: SerializeField] public EnemyBehaviourType EnemyBehaviour { get; private set; }
 
         [field: Space]
+        [field: Header("Sleep State")]
+        [field: SerializeField] public bool HasSleepState { get; private set; } = false;
+
+        [field: Space]
         [field: Header("Patrol State")]
         [field: SerializeField] public float PatrolSpeed { get; private set; } = 5.0f;
         [field: SerializeField] public float PatrolFlipTime { get; private set; } = 1f;
+        [field: SerializeField] public float PatrolDuration { get; private set; } = 5.0f;
 
         [field: Space]
         [field: Header("Chase State")]
@@ -41,6 +46,6 @@ namespace Enemy
 
         [field: Space]
         [field: Header("Watch State")]
-        [field: SerializeField] public bool WatchStateEnabled { get; private set; } = true;
+        [field: SerializeField] public bool HasWatchState { get; private set; } = true;
     }
 }

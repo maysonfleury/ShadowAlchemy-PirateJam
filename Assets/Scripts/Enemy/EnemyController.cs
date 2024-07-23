@@ -6,6 +6,7 @@ namespace Enemy
     public enum EnemyState
     {
         Inactive,
+        Sleeping,
         Patrolling,
         Chasing,
         Sweeping,
@@ -35,6 +36,7 @@ namespace Enemy
 
         [field: Space]
         [field: Header("Enemy Sensors")]
+        //[field: SerializeField] public Collider2D NearbySensor { get; private set; }
         [field: SerializeField] public Collider2D PatrolSensor { get; private set; }
         [field: SerializeField] public Collider2D ChaseSensor { get; private set; }
         [field: SerializeField] public Collider2D SweepSensor { get; private set; }
@@ -101,8 +103,25 @@ namespace Enemy
 
             switch (EnemyState)
             {
+                case EnemyState.Sleeping:
+                    if (NearbyProximityCheck(out Collider2D collider)
+                    && SightCheck(collider.transform))
+                    {
+                        RemoveVelocity();
+                        ChangeState(EnemyState.Patrolling);
+                    }
+
+                    return;
+
                 case EnemyState.Patrolling:
-                    if (PatrolProximityCheck(out Collider2D collider)
+                    if(EnemyData.HasSleepState 
+                        && currentStateDuration < Time.time)
+                    {
+                        RemoveVelocity();
+                        ChangeState(EnemyState.Sleeping);
+                    }
+
+                    if (PatrolProximityCheck(out collider)
                         && SightCheck(collider.transform))
                     {
                         RemoveVelocity();
@@ -151,7 +170,7 @@ namespace Enemy
 
                             if (LedgeCheck() || WallCheck())
                             {
-                                if (EnemyData.WatchStateEnabled && targetIsInFront)
+                                if (EnemyData.HasWatchState && targetIsInFront)
                                 {
                                     RemoveVelocity();
                                     ChangeState(EnemyState.Watching);
@@ -265,15 +284,20 @@ namespace Enemy
 
             switch (state)
             {
+                case EnemyState.Sleeping:
+                    ResetAttackPivot();
+                    break;
+
                 case EnemyState.Patrolling:
-                    RotateAttackPivotTowards(new Vector2(HorizontalFacing, 0) + (Vector2)AttackPivot.position);
+                    ResetAttackPivot();
+                    currentStateDuration = EnemyData.PatrolDuration + Time.time;
                     break;
 
                 case EnemyState.Chasing:
                     currentAttackCooldown = EnemyData.AttackCooldown + Time.time;
                     break;
                 case EnemyState.Sweeping:
-                    RotateAttackPivotTowards(new Vector2(HorizontalFacing, 0) + (Vector2)AttackPivot.position);
+                    ResetAttackPivot();
                     currentStateDuration = EnemyData.SweepDuration + Time.time;
                     break;
                 case EnemyState.Attacking:
@@ -287,7 +311,7 @@ namespace Enemy
 
                     break;
                 case EnemyState.Watching:
-                    RotateAttackPivotTowards(new Vector2(HorizontalFacing, 0) + (Vector2)AttackPivot.position);
+                    ResetAttackPivot();
                     UpdateVelocity(new Vector2(HorizontalFacing, 0), 0);
                     break;
                 default: //EnemyState.Inactive:
@@ -409,6 +433,11 @@ namespace Enemy
             return ColliderCheck(WallSensor, groundFilter, out _);
         }
 
+        private bool NearbyProximityCheck(out Collider2D hitCollider)
+        {
+            return ColliderCheck(RigidbodyCollider, targetFilter, out hitCollider);
+        }
+
         private bool PatrolProximityCheck(out Collider2D hitCollider)
         {
             return ColliderCheck(PatrolSensor, targetFilter, out hitCollider);
@@ -460,6 +489,11 @@ namespace Enemy
                 Quaternion targetRotation = Quaternion.Euler(0, 0, clampedAngle);
                 AttackPivot.rotation = targetRotation;
             }
+        }
+
+        private void ResetAttackPivot()
+        {
+            RotateAttackPivotTowards(new Vector2(HorizontalFacing, 0) + (Vector2)AttackPivot.position);
         }
 
         private Vector2 GetDirection(Vector2 startPoint, Vector2 endPoint)
