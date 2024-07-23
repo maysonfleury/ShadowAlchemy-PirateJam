@@ -100,7 +100,8 @@ public class Projectile : MonoBehaviour
 
             if (ProjectileSO.ForceOnHit != null)
             {
-                movable.ApplyRelativeForce(Rigidbody.velocity.x, ProjectileSO.ForceOnHit);
+                Vector2 direction = Rigidbody.velocity.normalized;
+                movable.ApplyRelativeForce(direction.x, ProjectileSO.ForceOnHit);
             }
         }
     }
