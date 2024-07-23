@@ -63,10 +63,9 @@ public class Projectile : MonoBehaviour
         {
             for (int i = 0; i < numColliders; i++)
             {
-                if (!previousHits.Contains(colliders[i]) 
-                    && colliders[i].TryGetComponent(out IHealth target))
+                if (!previousHits.Contains(colliders[i]))
                 {
-                    OnHit(target);
+                    OnHit(colliders[i]);
                 }
 
                 previousHits.Add(colliders[i]);
@@ -86,9 +85,25 @@ public class Projectile : MonoBehaviour
         }
     }
 
-    private void OnHit(IHealth target)
+    private void OnHit(Collider2D target)
     {
-        target.DamageHealth(ProjectileSO.Damage);
+        if(target.TryGetComponent(out IEffectable effectable))
+        {
+            if (ProjectileSO.EffectOnHit != null)
+            {
+                effectable.ApplyEffect(ProjectileSO.EffectOnHit);
+            }
+        }
+
+        if (target.TryGetComponent(out IMovable movable))
+        {
+            //TODO: Force should be relative to projectile location
+
+            if (ProjectileSO.ForceOnHit != null)
+            {
+                //effectable.ApplyEffect(ProjectileSO.EffectOnHit);
+            }
+        }
     }
 
     private void OnCollision()

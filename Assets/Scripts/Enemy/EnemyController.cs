@@ -1,3 +1,4 @@
+using Effect;
 using System;
 using UnityEngine;
 
@@ -17,10 +18,10 @@ namespace Enemy
     [RequireComponent(typeof(Animator))]
     [RequireComponent(typeof(Rigidbody2D))]
     [RequireComponent(typeof(Collider2D))]
-    public class EnemyController : MonoBehaviour, IHealth
+    public class EnemyController : MonoBehaviour, IEffectable, IMovable
     {
 
-        public Rigidbody2D Rigidbody2D { get; private set; }
+        public Rigidbody2D Rigidbody { get; private set; }
         public Collider2D RigidbodyCollider { get; private set; }
         public Animator Animator { get; private set; }
 
@@ -51,7 +52,6 @@ namespace Enemy
         [field: SerializeField] public ParticleSystem AttackParticles { get; private set; }
 
         public EnemyState EnemyState { get; private set; } = EnemyState.Inactive;
-        public float EnemySpeed { get; private set; } = 1.0f;
         public int HorizontalFacing { get; private set; } = 1;
 
 
@@ -68,12 +68,43 @@ namespace Enemy
         private bool isWaitingToFlip = false;
         private Vector2 lastTargetDirection = Vector2.zero;
 
+        private (Slow SlowData, float Duration) currentSlow = (null, 0f);
+        private (Stun StunData, float Duration) currentStun = (null, 0f);
+
+        public float Slow
+        {
+            get
+            {
+                if(currentSlow.SlowData != null 
+                    && currentSlow.Duration > Time.time)
+                {
+                    return currentSlow.SlowData.Percent;
+                }
+
+                return 0;
+            }
+        }
+
+        public bool Stunned
+        {
+            get
+            {
+                if (currentStun.StunData != null
+                    && currentStun.Duration > Time.time)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
         //debug
         private Vector3 gizmoTarget;
 
         protected virtual void Start()
         {
-            Rigidbody2D = GetComponent<Rigidbody2D>();
+            Rigidbody = GetComponent<Rigidbody2D>();
             RigidbodyCollider = GetComponent<Collider2D>();
             Animator = GetComponent<Animator>();
 
@@ -98,7 +129,7 @@ namespace Enemy
 
         protected void FixedUpdate()
         {
-            if(!GroundCheck())
+            if(!GroundCheck() || Stunned)
                 return;
 
             switch (EnemyState)
@@ -410,12 +441,18 @@ namespace Enemy
 
         protected void UpdateVelocity(Vector2 direction, float speed)
         {
-            Rigidbody2D.velocity = direction * speed;
+
+            if(Slow > 0)
+            {
+                speed -= Slow * speed;
+            }
+
+            Rigidbody.velocity = direction * speed;
         }
 
         protected void RemoveVelocity()
         {
-            Rigidbody2D.velocity = Vector2.zero;
+            Rigidbody.velocity = Vector2.zero;
         }
 
         private bool GroundCheck()
@@ -535,13 +572,6 @@ namespace Enemy
             }
         }
 
-        public void ApplyForce(ForceSO forceSO)
-        {
-            float new_x = HorizontalFacing * forceSO.Direction.x;
-            Vector2 velocity = new Vector2(new_x, forceSO.Direction.y).normalized * forceSO.Speed;
-            Rigidbody2D.AddForce(velocity, forceSO.ForceMode);
-        }
-
         public void FireProjectile(ProjectileSO projectileSO)
         {
             Projectile projectile = Instantiate(PrefabManager.Instance.Projectile);
@@ -557,6 +587,28 @@ namespace Enemy
         public void HealHealth(float healAmount)
         {
             throw new NotImplementedException();
+        }
+
+        public void ApplyEffect(EffectSO effectSO)
+        {
+            DamageHealth(effectSO.Damage);
+
+            if(effectSO.SlowData.Enabled)
+            {
+                currentSlow = new(effectSO.SlowData, Time.time + effectSO.SlowData.Duration);
+            }
+
+            if(effectSO.StunData.Enabled)
+            {
+                currentStun = new(effectSO.StunData, Time.time + effectSO.StunData.Duration);
+            }
+        }
+
+        public void ApplyForce(ForceSO forceSO)
+        {
+            float new_x = HorizontalFacing * forceSO.Direction.x;
+            Vector2 velocity = new Vector2(new_x, forceSO.Direction.y).normalized * forceSO.Speed;
+            Rigidbody.AddForce(velocity, forceSO.ForceMode);
         }
     }
 }
