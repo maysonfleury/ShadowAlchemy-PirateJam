@@ -51870,10 +51870,10 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  refractionStrength: 0.55
-  reflectionColor: {r: 0, g: 0, b: 0, a: 1}
+  refractionStrength: 0.69
+  reflectionColor: {r: 0.3773585, g: 0.3773585, b: 0.3773585, a: 1}
   reflectionStrength: 0.5
-  waveSpeed: 1.85
+  waveSpeed: 3.75
   dropInterval: 0.5
   shader: {fileID: 4800000, guid: 162fe242d486f4dab90ed53db15b9c19, type: 3}
 --- !u!1 &970280019

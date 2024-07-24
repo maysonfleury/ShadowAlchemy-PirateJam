@@ -59,12 +59,14 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     private bool groundTouch;
     private bool hasDashed;
     private bool coyoteEnabled;
+    private RippleEffect camRipple;
 
     // Start is called before the first frame update
     void Start()
     {
         coll = GetComponent<Collision>();
         rb = GetComponent<Rigidbody2D>();
+        camRipple = FindObjectOfType<RippleEffect>();
     }
 
     // Update is called once per frame
@@ -272,9 +274,8 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     {
         //anim.SetTrigger("dash");
 
-        Camera.main.transform.DOComplete();
-        Camera.main.transform.DOShakePosition(.2f, .5f, 14, 90, false, true);
-        FindObjectOfType<RippleEffect>().Emit(Camera.main.WorldToViewportPoint(transform.position));
+        camRipple.waveSpeed = 3f;
+        camRipple.Emit(Camera.main.WorldToViewportPoint(transform.position));
 
         hasDashed = true;
 
@@ -411,11 +412,10 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     {
         //anim.SetTrigger("dash");
 
-        Camera.main.transform.DOComplete();
-        Camera.main.transform.DOShakePosition(.2f, .5f, 14, 90, false, true);
-        FindObjectOfType<RippleEffect>().Emit(Camera.main.WorldToViewportPoint(transform.position));
+        camRipple.waveSpeed = 3.75f;
+        camRipple.Emit(Camera.main.WorldToViewportPoint(transform.position));
 
-        hasDashed = true;
+        //hasDashed = true;
 
         rb.velocity = Vector2.zero;
         Vector2 dir = new Vector2(x, y);
@@ -426,7 +426,6 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
 
     IEnumerator KnockbackWait()
     {
-        //FindObjectOfType<GhostTrail>().ShowGhost();
         StartCoroutine(GroundDash());
         DOVirtual.Float(14, 0, .8f, RigidbodyDrag);
 
