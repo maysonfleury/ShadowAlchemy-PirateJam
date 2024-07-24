@@ -5,7 +5,7 @@ using DG.Tweening;
 using Effect;
 using UnityEngine;
 
-public class ShadeController : MonoBehaviour, IEffectable, IMovable
+public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IMovable
 {
     private Collision coll;
     [HideInInspector]
@@ -25,6 +25,7 @@ public class ShadeController : MonoBehaviour, IEffectable, IMovable
     [Header("Combat")]
     public Collider2D attackHitbox;
     public bool mouseAiming;
+    public float knockbackForce = 10f;
     public float attackCooldown = 1f;
     public float attackRange = 1f;
     public float floorHeight = -0.55f;
@@ -54,6 +55,7 @@ public class ShadeController : MonoBehaviour, IEffectable, IMovable
     // Private values
     private float xRaw;
     private float yRaw;
+    private Vector3 aimDir;
     private bool groundTouch;
     private bool hasDashed;
     private bool coyoteEnabled;
@@ -68,9 +70,9 @@ public class ShadeController : MonoBehaviour, IEffectable, IMovable
     // Update is called once per frame
     void Update()
     {
-        //if (TimeManager.Instance.IsGamePaused)
-        //    return;
         if (!canMove)
+            return;
+        if (TimeManager.Instance.IsGamePaused)
             return;
 
         float x = Input.GetAxis("Horizontal");
@@ -173,7 +175,7 @@ public class ShadeController : MonoBehaviour, IEffectable, IMovable
             // Get direction of cursor in relation to character model
             Vector3 cursorPosCam = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 15f));
             Vector3 cursorPos = cursorPosCam + (Camera.main.transform.forward * 15.0f);
-            Vector3 aimDir = (cursorPos - gameObject.transform.position).normalized * 10f;
+            aimDir = (cursorPos - gameObject.transform.position).normalized * 10f;
 
             // Don't hit the floor beneath you
             if (coll.onGround)
@@ -193,8 +195,6 @@ public class ShadeController : MonoBehaviour, IEffectable, IMovable
         }
         else // Keyboard 4-directional aiming
         {
-            Vector3 aimDir;
-
             // Priotize up-down attacks in the air and on wall
             if (!coll.onGround || coll.onWall)
             {
@@ -209,7 +209,7 @@ public class ShadeController : MonoBehaviour, IEffectable, IMovable
             {
                 if (xRaw != 0)
                     aimDir = new Vector3(xRaw * attackRange, 0, 0);
-                else if (yRaw != 0)
+                else if (yRaw > 0)
                     aimDir = new Vector3(0, yRaw * attackRange, 0);
                 else // Default to last left-right direction input
                     aimDir = new Vector3(side * attackRange, 0, 0);
@@ -323,7 +323,7 @@ public class ShadeController : MonoBehaviour, IEffectable, IMovable
         //}
 
         StopCoroutine(DisableMovement(0));
-        StartCoroutine(DisableMovement(.1f));
+        StartCoroutine(DisableMovement(10f));
 
         Vector2 wallDir = coll.onRightWall ? Vector2.left : Vector2.right;
 
@@ -357,6 +357,9 @@ public class ShadeController : MonoBehaviour, IEffectable, IMovable
 
     private void Jump(Vector2 dir, bool wall)
     {
+        if (!canMove)
+            return;
+
         //slideParticle.transform.parent.localScale = new Vector3(ParticleSide(), 1, 1);
         //ParticleSystem particle = wall ? wallJumpParticle : jumpParticle;
 
@@ -404,22 +407,73 @@ public class ShadeController : MonoBehaviour, IEffectable, IMovable
         yield return null;
     }
 
-    public void DisableMovementForSeconds(float seconds)
+    private void Knockback(float x, float y)
     {
-        StopCoroutine(DisableMovement(0f));
-        StartCoroutine(DisableMovement(seconds));
+        //anim.SetTrigger("dash");
+
+        Camera.main.transform.DOComplete();
+        Camera.main.transform.DOShakePosition(.2f, .5f, 14, 90, false, true);
+        FindObjectOfType<RippleEffect>().Emit(Camera.main.WorldToViewportPoint(transform.position));
+
+        hasDashed = true;
+
+        rb.velocity = Vector2.zero;
+        Vector2 dir = new Vector2(x, y);
+
+        rb.velocity += dir.normalized * knockbackForce;
+        StartCoroutine(KnockbackWait());
     }
 
-    IEnumerator DisableMovement(float time)
+    IEnumerator KnockbackWait()
+    {
+        //FindObjectOfType<GhostTrail>().ShowGhost();
+        StartCoroutine(GroundDash());
+        DOVirtual.Float(14, 0, .8f, RigidbodyDrag);
+
+        dashParticle.Play();
+        rb.gravityScale = 0;
+        GetComponent<GravityController>().enabled = false;
+        wallJumped = true;
+        isDashing = true;
+        
+        //shadeModel.GetComponent<Renderer>().material.DOFade()
+        yield return new WaitForSeconds(.3f);
+
+        //dashParticle.Stop();
+        rb.gravityScale = 3;
+        GetComponent<GravityController>().enabled = true;
+        wallJumped = false;
+        isDashing = false;
+    }
+
+    public void DisableMovementForFrames(float frames)
+    {
+        StopCoroutine(DisableMovement(0f));
+        StartCoroutine(DisableMovement(frames));
+    }
+
+    IEnumerator DisableMovement(float frames)
     {
         canMove = false;
-        yield return new WaitForSeconds(time);
+        for (int i = 0; i < frames; i++)
+            yield return new WaitForEndOfFrame();
         canMove = true;
     }
 
     void RigidbodyDrag(float x)
     {
         rb.drag = x;
+    }
+
+
+    //**************************************
+    //*         IPlayerController          *
+    //**************************************
+
+    public void OnEnemyHit(float stunLength)
+    {
+        Debug.Log("[PlayerController]: Enemy was hit!");
+        Knockback(-aimDir.x, -aimDir.y);
     }
 
 
@@ -438,8 +492,8 @@ public class ShadeController : MonoBehaviour, IEffectable, IMovable
 
     public void ApplyForce(ForceSO forceSO)
     {
-        Debug.Log("ApplyForce called on Player from " + forceSO.name);
-        DisableMovementForSeconds(0.1f);
+        Debug.Log("[ShadeController]: ApplyForce called on Player from " + forceSO.name);
+        DisableMovementForFrames(100f);
         float new_x = side * forceSO.Direction.x;
         Vector2 velocity = new Vector2(new_x, forceSO.Direction.y).normalized * forceSO.Speed;
         rb.AddForce(velocity, forceSO.ForceMode);
@@ -447,8 +501,8 @@ public class ShadeController : MonoBehaviour, IEffectable, IMovable
 
     public void ApplyRelativeForce(float forward, ForceSO forceSO)
     {
-        Debug.Log("ApplyRelativeForce called on Player from " + forceSO.name);
-        DisableMovementForSeconds(0.1f);
+        Debug.Log("[ShadeController]: ApplyRelativeForce called on Player from " + forceSO.name);
+        DisableMovementForFrames(100f);
         if(forward == 0)
         {
             forward = 1;

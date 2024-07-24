@@ -32,6 +32,7 @@ public class TimeManager : PersistentSingleton<TimeManager>
 
     public void PauseGame()
     {
+        StopCoroutine(HitStopFramesRoutine(0f));
         PauseScreen.SetActive(true);
         Time.timeScale = 0f;
         IsGamePaused = true;
@@ -53,15 +54,17 @@ public class TimeManager : PersistentSingleton<TimeManager>
 
     IEnumerator HitStopFramesRoutine(float frames)
     {
-        //Time.timeScale = 0f;
+        Debug.Log("ZA WARUDO");
+        yield return new WaitForEndOfFrame();
+        Time.timeScale = 0.1f;
         isTimeScaleChanged = true;
-        foreach (Rigidbody2D rbs in FindObjectsOfType<Rigidbody2D>())
-            rbs.simulated = false;
+        //foreach (Rigidbody2D rbs in FindObjectsOfType<Rigidbody2D>())
+        //    rbs.constraints = RigidbodyConstraints2D.FreezeAll;
         for (int i = 0; i < frames; i++)
             yield return new WaitForEndOfFrame();
-        //Time.timeScale = 1.0f;
-        foreach (Rigidbody2D rbs in FindObjectsOfType<Rigidbody2D>())
-            rbs.simulated = true;
+        Time.timeScale = 1.0f;
+        //foreach (Rigidbody2D rbs in FindObjectsOfType<Rigidbody2D>())
+        //    rbs.constraints = RigidbodyConstraints2D.FreezeRotation;
         isTimeScaleChanged = false;
     }
 }

@@ -22,16 +22,21 @@ public class PlayerAttack : MonoBehaviour
     {
         if (col.gameObject.CompareTag("Enemy"))
         {
-            Debug.Log("Attack hit enemy");
+            if (gameObject.transform.parent.TryGetComponent(out IPlayerController controller))
+            {
+                controller.OnEnemyHit(hitStunLength);
+            }
+
+            Debug.Log("[PlayerAttack]: Hit enemy");
             if (attackEffect && col.TryGetComponent(out IEffectable effectable))
             {
                 effectable.ApplyEffect(attackEffect);
-                Debug.Log("Attack Effect sent");
+                Debug.Log("[PlayerAttack]: Effect sent");
             }
             if (attackKnockback && col.TryGetComponent(out IMovable movable))
             {
                 movable.ApplyForce(attackKnockback);
-                Debug.Log("Attack Knockback sent");
+                Debug.Log("[PlayerAttack]: Knockback sent");
             }
 
             timeManager.HitStopFrames(hitStunLength);
