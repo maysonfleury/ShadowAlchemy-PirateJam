@@ -19,7 +19,7 @@ namespace Enemy
     [RequireComponent(typeof(Animator))]
     [RequireComponent(typeof(Rigidbody2D))]
     [RequireComponent(typeof(Collider2D))]
-    public class EnemyController : MonoBehaviour, IEffectable, IMovable
+    public class EnemyController : MonoBehaviour, IEffectable, IMovable, IPossessable
     {
 
         public Rigidbody2D Rigidbody { get; private set; }
@@ -638,6 +638,20 @@ namespace Enemy
         {
             gameObject.SetActive(false);
             Destroy(gameObject);
+        }
+
+        public bool TryPossession(out Transform transform)
+        {
+            transform = null;
+
+            if (EnemyState == EnemyState.Dying)
+            {
+                transform = this.transform;
+                KillEnemy();
+                return true;
+            }
+
+            else return false;
         }
     }
 }
