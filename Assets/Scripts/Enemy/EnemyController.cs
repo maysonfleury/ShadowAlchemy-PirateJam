@@ -72,6 +72,30 @@ namespace Enemy
         private (Slow SlowData, float Duration) currentSlow = (null, 0f);
         private (Stun StunData, float Duration) currentStun = (null, 0f);
 
+        int _currentHealth = 0;
+        public int CurrentHealth
+        {
+            get
+            {
+                return _currentHealth;
+            }
+
+            private set
+            {
+                _currentHealth = value;
+
+                if(_currentHealth <= 0)
+                {
+                    ChangeState(EnemyState.Dying);
+                }
+
+                else if(_currentHealth > EnemyData.DefaultHealth)
+                {
+                    _currentHealth = EnemyData.DefaultHealth;
+                }
+            }
+        }
+
         public float Slow
         {
             get
@@ -103,7 +127,7 @@ namespace Enemy
         //debug
         private Vector3 gizmoTarget;
 
-        protected virtual void Start()
+        protected void Awake()
         {
             Rigidbody = GetComponent<Rigidbody2D>();
             RigidbodyCollider = GetComponent<Collider2D>();
@@ -128,6 +152,11 @@ namespace Enemy
             attackAnimationLength = GetClipLength("Attack");
         }
 
+        protected virtual void Start()
+        {
+            CurrentHealth = EnemyData.DefaultHealth;
+        }
+
         protected void FixedUpdate()
         {
             if(!GroundCheck() || Stunned)
@@ -139,7 +168,6 @@ namespace Enemy
                     if (NearbyProximityCheck(out Collider2D collider)
                     && SightCheck(collider.transform))
                     {
-                        RemoveVelocity();
                         ChangeState(EnemyState.Patrolling);
                     }
 
@@ -149,20 +177,17 @@ namespace Enemy
                     if(EnemyData.HasSleepState 
                         && currentStateDuration < Time.time)
                     {
-                        RemoveVelocity();
                         ChangeState(EnemyState.Sleeping);
                     }
 
                     if (PatrolProximityCheck(out collider)
                         && SightCheck(collider.transform))
                     {
-                        RemoveVelocity();
                         ChangeState(EnemyState.Chasing);
                     }
 
                     else if(LedgeCheck() || WallCheck())
                     {
-                        RemoveVelocity();
                         PrepareFlipCharacter(EnemyData.PatrolFlipTime);
                     }
 
@@ -177,7 +202,7 @@ namespace Enemy
                     if (currentAttackCooldown > Time.time
                         && !EnemyData.ChaseOnAttackCooldown)
                     {
-                        RemoveVelocity();
+                        return;
                     }
 
                     else if (ChaseProximityCheck(out collider)
@@ -193,7 +218,6 @@ namespace Enemy
                         if (AttackProximityCheck(out _) 
                             && currentAttackCooldown < Time.time)
                         {
-                            RemoveVelocity();
                             ChangeState(EnemyState.Attacking);
                         }
 
@@ -204,20 +228,17 @@ namespace Enemy
                             {
                                 if (EnemyData.HasWatchState && targetIsInFront)
                                 {
-                                    RemoveVelocity();
                                     ChangeState(EnemyState.Watching);
                                 }
 
                                 else
                                 {
-                                    RemoveVelocity();
                                     PrepareFlipCharacter(EnemyData.ChaseFlipTime);
                                 }
                             }
 
                             else if(!targetIsInFront)
                             {
-                                RemoveVelocity();
                                 PrepareFlipCharacter(EnemyData.ChaseFlipTime);
                             }
 
@@ -230,7 +251,6 @@ namespace Enemy
 
                     else
                     {
-                        RemoveVelocity();
                         ChangeState(EnemyState.Sweeping);
                     }
 
@@ -240,19 +260,16 @@ namespace Enemy
                     if (SweepProximityCheck(out collider)
                         && SightCheck(collider.transform))
                     {
-                        RemoveVelocity();
                         ChangeState(EnemyState.Chasing);
                     }
 
                     else if (currentStateDuration < Time.time)
                     {
-                        RemoveVelocity();
                         ChangeState(EnemyState.Patrolling);
                     }
 
                     else if (LedgeCheck() || WallCheck())
                     {
-                        RemoveVelocity();
                         PrepareFlipCharacter(EnemyData.SweepFlipTime);
                     }
 
@@ -287,11 +304,6 @@ namespace Enemy
                         else if (!IsPointInFront(collider.transform.position))
                         {
                             ChangeState(EnemyState.Chasing);
-                        }
-
-                        else
-                        {
-                            RemoveVelocity();
                         }
                     }
 
@@ -354,6 +366,10 @@ namespace Enemy
                     break;
 
                 case EnemyState.Dying:
+                    if (EnemyState == EnemyState.Dying)
+                    {
+                        return;
+                    }
                     currentStateDuration = EnemyData.DyingDuration + Time.time;
                     break;
                 default: //EnemyState.Inactive:
@@ -363,30 +379,6 @@ namespace Enemy
             EnemyState = state;
         }
 
-        //private bool BeforeStateChange(EnemyState state)
-        //{
-        //    currentStateDuration = 0;
-
-        //    switch (state)
-        //    {
-        //        case EnemyState.Patrolling:
-        //            break;
-
-        //        case EnemyState.Chasing:
-        //            break;
-        //        case EnemyState.Sweeping:
-        //            currentStateDuration = EnemyData.SweepDuration + Time.time;
-        //            break;
-        //        case EnemyState.Attacking:
-        //            currentAttackCooldown = EnemyData.AttackCooldown + Time.time;
-        //            break;
-        //        case EnemyState.Watching:
-        //            UpdateVelocity(new Vector2(HorizontalFacing, 0), 0);
-        //            break;
-        //        default: //EnemyState.Inactive:
-        //            break;
-        //    }
-        //}
 
         protected bool PrepareFlipCharacter(float flipTime)
         {
@@ -590,9 +582,10 @@ namespace Enemy
             projectile.Initialize(projectileSO, AttackPivot.transform.position, dir);
         }
 
-        public void DamageHealth(float damageAmount)
+        public void DamageHealth(int damageAmount)
         {
             Debug.Log("Enemy Hit");
+            CurrentHealth -= damageAmount;
         }
 
         public void HealHealth(float healAmount)

@@ -16,6 +16,7 @@ namespace Enemy
     public class EnemyData
     {
         [field: SerializeField] public EnemyBehaviourType EnemyBehaviour { get; private set; }
+        [field: SerializeField, Min(1)] public int DefaultHealth { get; private set; } = 1;
 
         [field: Space]
         [field: Header("Sleep State")]

@@ -8,7 +8,7 @@ namespace Effect
     [CreateAssetMenu(menuName = "EffectSO")]
     public class EffectSO : ScriptableObject
     {
-        [field: SerializeField, Space] public float Damage { get; private set; } = 5.0f;
+        [field: SerializeField, Space] public int Damage { get; private set; } = 5;
         [field: SerializeField, Space] public Stun StunData { get; private set; }
         [field: SerializeField, Space] public Slow SlowData { get; private set; }
     }
