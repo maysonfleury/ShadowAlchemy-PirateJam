@@ -189,22 +189,27 @@ public class PlayerFormController : MonoBehaviour
             switch (currentForm)
             {
                 case PlayerForm.Shade:
+                    sfxManager.Play("die");
                 break;
 
                 case PlayerForm.Bat:
-                    // Bat hurt VFX/SFX
+                    // TODO: Bat hurt VFX/SFX
+                    sfxManager.Play("hit");
                 break;
 
                 case PlayerForm.Rat:
-                    // Rat hurt VFX/SFX
+                    // TODO: Rat hurt VFX/SFX
+                    sfxManager.Play("hit");
                 break;
 
                 case PlayerForm.Spider:
-                    // Spider hurt VFX/SFX
+                    // TODO: Spider hurt VFX/SFX
+                    sfxManager.Play("hit");
                 break;
 
                 case PlayerForm.Skeleton:
-                    // Skeleton hurt VFX/SFX
+                    // TODO: Skeleton hurt VFX/SFX
+                    sfxManager.Play("hit");
                 break;
             }
             currentHP--;

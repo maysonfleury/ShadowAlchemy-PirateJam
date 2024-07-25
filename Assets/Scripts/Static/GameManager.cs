@@ -53,26 +53,21 @@ public class GameManager : PersistentSingleton<GameManager>
 
     private void HandleStarting() 
     {
-        ChangeState(GameState.LoadState);
     }
 
     private void HandleLoadScene() 
     {
-        ChangeState(GameState.IntroState);
     }
 
     private void HandleIntroScene() 
     {
-        ChangeState(GameState.GameState);
     }
 
     private void HandleGameScene() 
     {
-        ChangeState(GameState.EndState);
     }
 
     private void HandleEndScene()
     {
-
     }
 }

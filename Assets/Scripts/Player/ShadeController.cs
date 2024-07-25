@@ -81,6 +81,8 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
             return;
         if (TimeManager.Instance.IsGamePaused)
             return;
+        if (GameManager.Instance.State != GameManager.GameState.GameState)
+            return;
 
         float x = Input.GetAxis("Horizontal");
         float y = Input.GetAxis("Vertical");
@@ -159,21 +161,22 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
 
         if (xRaw == 0 || coll.onWall)
         {
-            shadeModel.transform.DOLocalRotate(Vector3.zero, Time.deltaTime * rotateTime);
+            if(!DOTween.IsTweening(shadeModel.transform))
+                shadeModel.transform.DOLocalRotate(Vector3.zero, rotateTime).SetEase(Ease.OutExpo);
         }
         else if(xRaw > 0)
         {
             side = 1;
             //anim.Flip(side);
-            if (!coll.onWall)
-                shadeModel.transform.DOLocalRotate(new Vector3(0, 0, -10), Time.deltaTime * rotateTime);
+            if (!DOTween.IsTweening(shadeModel.transform))
+                shadeModel.transform.DOLocalRotate(new Vector3(0, 0, -10), rotateTime);
         }
         else if (xRaw < 0)
         {
             side = -1;
             //anim.Flip(side);
-            if (!coll.onWall)
-                shadeModel.transform.DOLocalRotate(new Vector3(0, 0, 10), Time.deltaTime * rotateTime);
+            if (!DOTween.IsTweening(shadeModel.transform))
+                shadeModel.transform.DOLocalRotate(new Vector3(0, 0, 10), rotateTime);
         }
     }
 
@@ -433,10 +436,18 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
 
         //hasDashed = true;
 
+        float xVel;
+        if (x == 0) xVel = rb.velocity.x;
+        else if (x > 0 && rb.velocity.x > 0) xVel = rb.velocity.x;
+        else if (x < 0 && rb.velocity.x < 0) xVel = rb.velocity.x;
+        else xVel = x;
+
         rb.velocity = Vector2.zero;
         Vector2 dir = new Vector2(x, y);
+        Vector2 add = new Vector2(xVel, 0);
 
         rb.velocity += dir.normalized * knockbackForce;
+        rb.velocity += add;
         StartCoroutine(KnockbackWait());
     }
 

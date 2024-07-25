@@ -15,6 +15,7 @@ public class TimeManager : PersistentSingleton<TimeManager>
     void Start()
     {
         IsGamePaused = false;
+        GameManager.Instance.ChangeState(GameManager.GameState.GameState);
     }
 
     void Update()
@@ -48,8 +49,10 @@ public class TimeManager : PersistentSingleton<TimeManager>
 
     public void GameOver()
     {
-        Time.timeScale = 0.1f;
+        Debug.Log("GAME OVER");
+        Time.timeScale = 0f;
         GameOverScreen.SetActive(true);
+        GameManager.Instance.ChangeState(GameManager.GameState.EndState);
     }
 
     public void HitStopFrames(float frameAmount)
