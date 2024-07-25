@@ -24,7 +24,7 @@ public class PlayerAttack : MonoBehaviour
         {
             if (gameObject.transform.parent.TryGetComponent(out IPlayerController controller))
             {
-                controller.OnEnemyHit(hitStunLength);
+                controller.OnHitEnemy(hitStunLength);
             }
 
             Debug.Log("[PlayerAttack]: Hit enemy");

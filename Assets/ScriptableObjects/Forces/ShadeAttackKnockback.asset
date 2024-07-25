@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <ForceMode>k__BackingField: 0
   <Direction>k__BackingField: {x: 1, y: 0}
-  <Speed>k__BackingField: 100
+  <Speed>k__BackingField: 500

@@ -1,24 +1,32 @@
 using System.Collections;
 using System.Collections.Generic;
+using Effect;
 using UnityEngine;
 
 public class SpikeTrap : MonoBehaviour
 {
+    [Header("Player Values")]
     [SerializeField] float knockForward = 5f;
     [SerializeField] float knockUp = 10f;
     [SerializeField] ParticleSystem trapParticle;
+
+    [Space]
+    [Header("Enemy Values")]
+    [SerializeField] EffectSO damageEffect;
+    [SerializeField] ForceSO knockbackEffect;
+
     void OnCollisionEnter2D(Collision2D col)
     {
         if (col.gameObject.CompareTag("Player"))
         {
-            Debug.Log("Player stepped on a trap!");
+            Debug.Log("Player stepped on spikes!");
 
             PlayerFormController form = col.gameObject.GetComponentInParent<PlayerFormController>();
             
             if (form.currentForm != PlayerFormController.PlayerForm.Shade)
             {
-                form.TakeDamage();
-                form.giveInvulnerability(0.2f);
+                form.DamagePlayer();
+                form.giveInvulnerability(1f);
 
                 Rigidbody2D rb = col.gameObject.GetComponent<Rigidbody2D>();
                 rb.velocity = new Vector2(rb.velocity.x, 0);
@@ -31,9 +39,17 @@ public class SpikeTrap : MonoBehaviour
                 trapParticle.Play();
             }
         }
-        else
+        else if (col.gameObject.CompareTag("Enemy"))
         {
-            //Debug.Log("yes it does");
+            Debug.Log("Enemy stepped on spikes!");
+            if (damageEffect && col.collider.TryGetComponent(out IEffectable effectable))
+            {
+                effectable.ApplyEffect(damageEffect);
+            }
+            if (knockbackEffect && col.collider.TryGetComponent(out IMovable movable))
+            {
+                movable.ApplyForce(knockbackEffect);
+            }
         }
     }
 }

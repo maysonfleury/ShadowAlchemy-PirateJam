@@ -19,6 +19,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     public float coyoteFrames = 50;
     public float wallSlideSpeed = 1;
     public float wallJumpControl = 3.75f;
+    public float ledgeHopStrength = 1f;
     public float dashSpeed = 50;
 
     [Space]
@@ -40,6 +41,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     public bool wallJumped;
     public bool wallSlide;
     public bool isDashing;
+    public bool isSlowed;
     public int side = 1;
 
     [Space]
@@ -56,10 +58,12 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     private float xRaw;
     private float yRaw;
     private Vector3 aimDir;
+    public float slowPercent;
     private bool groundTouch;
     private bool hasDashed;
     private bool coyoteEnabled;
     private RippleEffect camRipple;
+    private SFXManager sfxManager;
 
     // Start is called before the first frame update
     void Start()
@@ -67,6 +71,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
         coll = GetComponent<Collision>();
         rb = GetComponent<Rigidbody2D>();
         camRipple = FindObjectOfType<RippleEffect>();
+        sfxManager = FindObjectOfType<SFXManager>();
     }
 
     // Update is called once per frame
@@ -103,6 +108,13 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
 
         if (!coll.onWall || coll.onGround)
             wallSlide = false;
+
+        if (!coll.onGround && !coll.onWall && coll.onLedge && wallJumped)
+        {
+            Debug.Log("Ledge Hop!");
+            Vector2 dirr = new Vector2(side, 1);
+            rb.velocity = dirr * ledgeHopStrength;
+        }
 
         if (Input.GetButtonDown("Jump"))
         {
@@ -227,7 +239,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
         canAttack = false;
         attackParticle.Play();
         Invoke(nameof(ResetAttack), attackCooldown);
-        Invoke(nameof(DisableHitbox), 0.2f);
+        Invoke(nameof(DisableHitbox), 0.05f);
     }
 
     private void ResetAttack()
@@ -258,6 +270,11 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
         {
             rb.velocity = Vector2.Lerp(rb.velocity, new Vector2(dir.x * walkSpeed, rb.velocity.y), wallJumpControl * Time.deltaTime);
         }
+
+        if (isSlowed)
+        {
+            rb.velocity = new Vector2(rb.velocity.x * slowPercent * 0.4f, rb.velocity.y * slowPercent);
+        }
     }
 
     void GroundTouch()
@@ -276,6 +293,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
 
         camRipple.waveSpeed = 3f;
         camRipple.Emit(Camera.main.WorldToViewportPoint(transform.position));
+        sfxManager.Play("dash");
 
         hasDashed = true;
 
@@ -358,11 +376,9 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
 
     private void Jump(Vector2 dir, bool wall)
     {
-        if (!canMove)
-            return;
-
         //slideParticle.transform.parent.localScale = new Vector3(ParticleSide(), 1, 1);
         //ParticleSystem particle = wall ? wallJumpParticle : jumpParticle;
+        sfxManager.Play("jump");
 
         coyoteEnabled = false;
 
@@ -447,6 +463,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
 
     public void DisableMovementForFrames(float frames)
     {
+        Debug.Log("[ShadeController]: Disabling movement for " + frames + " frames");
         StopCoroutine(DisableMovement(0f));
         StartCoroutine(DisableMovement(frames));
     }
@@ -459,6 +476,43 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
         canMove = true;
     }
 
+    public void DisableMovementForSeconds(float time)
+    {
+        Debug.Log("[ShadeController]: Disabling movement for " + time + "s");
+        StopCoroutine(DisableMovementTime(0f));
+        StartCoroutine(DisableMovementTime(time));
+    }
+
+    IEnumerator DisableMovementTime(float time)
+    {
+        canMove = false;
+        yield return new WaitForSeconds(time);
+        canMove = true;
+    }
+
+    public void SlowMovement(float percentage, float duration)
+    {
+        if (!isSlowed)
+        {
+            Debug.Log("[ShadeController]: Slowing movement by " + percentage + "% for " + duration + "s");
+            StartCoroutine(SlowMovementRoutine(percentage, duration));
+        }
+        isSlowed = true;
+    }
+
+    IEnumerator SlowMovementRoutine(float percentage, float duration)
+    {
+        isSlowed = true;
+        slowPercent = (100f - percentage) * 0.01f;
+        rb.gravityScale *= slowPercent;
+        GetComponent<GravityController>().enabled = false;
+        yield return new WaitForSeconds(duration);
+        rb.gravityScale = 3f;
+        GetComponent<GravityController>().enabled = true;
+        isSlowed = false;
+        slowPercent = 0f;
+    }
+
     void RigidbodyDrag(float x)
     {
         rb.drag = x;
@@ -469,12 +523,29 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     //*         IPlayerController          *
     //**************************************
 
-    public void OnEnemyHit(float stunLength)
+    public void OnHitEnemy(float stunLength)
     {
         Debug.Log("[PlayerController]: Enemy was hit!");
         Knockback(-aimDir.x, -aimDir.y);
+        sfxManager.Play("hit");
     }
 
+    public void OnTakeDamage()
+    {
+        // TODO: idk something?
+    }
+
+    public void OnWebEnter(float percentage)
+    {
+        isSlowed = true;
+        slowPercent = (100f - percentage) * 0.01f;
+    }
+
+    public void OnWebExit()
+    {
+        isSlowed = false;
+        slowPercent = 0f;
+    }
 
     //********************************
     //*         IEffectable          *
@@ -482,7 +553,12 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
 
     public void ApplyEffect(EffectSO effectSO)
     {
-        throw new NotImplementedException();
+        if (effectSO.Damage > 0)
+            gameObject.transform.parent.GetComponent<PlayerFormController>().DamagePlayer();
+        if (effectSO.StunData.Enabled)
+            DisableMovementForSeconds(effectSO.StunData.Duration);
+        if (effectSO.SlowData.Enabled)
+            SlowMovement(effectSO.SlowData.Percent, effectSO.SlowData.Duration);
     }
 
     //*****************************

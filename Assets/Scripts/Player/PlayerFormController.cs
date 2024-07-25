@@ -17,7 +17,7 @@ public class PlayerFormController : MonoBehaviour
     }
 
     public PlayerForm currentForm;
-    private Transform currentTransform;
+    public Transform currentTransform;
     public int currentHP;
 
     [SerializeField] ShadeController shadeController;
@@ -27,6 +27,7 @@ public class PlayerFormController : MonoBehaviour
     [SerializeField] SkeletonController skeletonController;
     [SerializeField] ParticleSystem possessParticle;
     
+    private SFXManager sfxManager;
     private CinemachineVirtualCamera virtualCamera;
     private bool canTakeDamage;
 
@@ -34,6 +35,7 @@ public class PlayerFormController : MonoBehaviour
     void Start()
     {
         virtualCamera = FindObjectOfType<CinemachineVirtualCamera>();
+        sfxManager = FindObjectOfType<SFXManager>();
         InitializeForm();
         canTakeDamage = true;
         SetCameraTarget(currentTransform);
@@ -91,11 +93,9 @@ public class PlayerFormController : MonoBehaviour
 
     public void ChangeForm(PlayerForm form, Vector3 newPosition)
     {
-        if (form == currentForm)
-            return;
-
         possessParticle.transform.position = currentTransform.position;
         possessParticle.Play();
+        sfxManager.Play("possess");
 
         switch (form)
         {
@@ -104,8 +104,11 @@ public class PlayerFormController : MonoBehaviour
                 shadeController.transform.position = currentTransform.position;
                 SetCameraTarget(shadeController.transform);
                 currentForm = PlayerForm.Shade;
-                currentTransform.gameObject.SetActive(false);
-                currentTransform = shadeController.transform;
+                if (currentTransform != shadeController.transform)
+                {
+                    currentTransform.gameObject.SetActive(false);
+                    currentTransform = shadeController.transform;
+                }
                 currentHP = 1;
             break;
 
@@ -114,8 +117,11 @@ public class PlayerFormController : MonoBehaviour
                 batController.transform.position = currentTransform.position;
                 SetCameraTarget(batController.transform);
                 currentForm = PlayerForm.Bat;
-                currentTransform.gameObject.SetActive(false);
-                currentTransform = batController.transform;
+                if (currentTransform != batController.transform)
+                {
+                    currentTransform.gameObject.SetActive(false);
+                    currentTransform = batController.transform;
+                }
                 currentHP = 1;
             break;
 
@@ -124,8 +130,11 @@ public class PlayerFormController : MonoBehaviour
                 ratController.transform.position = currentTransform.position;
                 SetCameraTarget(ratController.transform);
                 currentForm = PlayerForm.Rat;
-                currentTransform.gameObject.SetActive(false);
-                currentTransform = ratController.transform;
+                if (currentTransform != ratController.transform)
+                {
+                    currentTransform.gameObject.SetActive(false);
+                    currentTransform = ratController.transform;
+                }
                 currentHP = 2;
             break;
 
@@ -134,8 +143,11 @@ public class PlayerFormController : MonoBehaviour
                 spiderController.transform.position = currentTransform.position;
                 SetCameraTarget(spiderController.transform);
                 currentForm = PlayerForm.Spider;
-                currentTransform.gameObject.SetActive(false);
-                currentTransform = spiderController.transform;
+                if (currentTransform != spiderController.transform)
+                {
+                    currentTransform.gameObject.SetActive(false);
+                    currentTransform = spiderController.transform;
+                }
                 currentHP = 2;
             break;
 
@@ -144,23 +156,29 @@ public class PlayerFormController : MonoBehaviour
                 skeletonController.transform.position = currentTransform.position;
                 SetCameraTarget(skeletonController.transform);
                 currentForm = PlayerForm.Skeleton;
-                currentTransform.gameObject.SetActive(false);
-                currentTransform = skeletonController.transform;
+                if (currentTransform != skeletonController.transform)
+                {
+                    currentTransform.gameObject.SetActive(false);
+                    currentTransform = skeletonController.transform;
+                }
                 currentHP = 4;
             break;
         }
     }
 
-    public void TakeDamage()
+    public void DamagePlayer()
     {
         if (!canTakeDamage)
             return;
-            
+        Debug.Log("[PlayerFormController]: Player took damage.");
+
         if (currentForm == PlayerForm.Shade && currentHP == 1)
         {
             // Die
+            sfxManager.Play("die");
             currentHP--;
             Debug.Log("dead");
+            TimeManager.Instance.GameOver();
         }
         else if (currentForm != PlayerForm.Shade && currentHP == 1)
         {
@@ -191,6 +209,8 @@ public class PlayerFormController : MonoBehaviour
             }
             currentHP--;
         }
+
+        giveInvulnerability(1f);
     }
 
     public void giveInvulnerability(float time)
