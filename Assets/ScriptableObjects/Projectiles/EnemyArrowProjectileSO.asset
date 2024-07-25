@@ -14,11 +14,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <Speed>k__BackingField: 5
   <Duration>k__BackingField: 5
-  <EffectOnHit>k__BackingField: {fileID: 0}
-  <ForceOnHit>k__BackingField: {fileID: 11400000, guid: 7c092a7171ee0634d9d38e409b94c53a, type: 2}
-  <CollisionMasks>k__BackingField:
-  - serializedVersion: 2
-    m_Bits: 16448
-  <HitMasks>k__BackingField:
-  - serializedVersion: 2
-    m_Bits: 16384
+  <Hit>k__BackingField:
+    <Enabled>k__BackingField: 0
+    <EffectOnHit>k__BackingField: {fileID: 0}
+    <ForceOnHit>k__BackingField: {fileID: 0}
+    <HitMasks>k__BackingField: []
+  <Collision>k__BackingField:
+    <Enabled>k__BackingField: 0
+    <EffectOnCollision>k__BackingField: {fileID: 0}
+    <ForceOnCollision>k__BackingField: {fileID: 0}
+    <CollisionMasks>k__BackingField: []
+  <Homing>k__BackingField:
+    <Enabled>k__BackingField: 1
+    <AngularSpeed>k__BackingField: 80
+    <HomingMasks>k__BackingField:
+    - serializedVersion: 2
+      m_Bits: 16384
+  <Multi>k__BackingField:
+    <Enabled>k__BackingField: 1
+    <NumProjectiles>k__BackingField: 20
+    <SpreadAngle>k__BackingField: 360

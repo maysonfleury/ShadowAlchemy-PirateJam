@@ -1,4 +1,5 @@
 using Effect;
+using Projectiles;
 using System;
 using UnityEngine;
 
@@ -577,9 +578,8 @@ namespace Enemy
 
         public void FireProjectile(ProjectileSO projectileSO)
         {
-            Projectile projectile = Instantiate(PrefabManager.Instance.Projectile);
             Vector2 dir = AttackPivot.right * HorizontalFacing;
-            projectile.Initialize(projectileSO, AttackPivot.transform.position, dir);
+            ProjectileManager.Instance.Request(projectileSO, FirePoint.transform.position, dir);
         }
 
         public void DamageHealth(int damageAmount)

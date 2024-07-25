@@ -3,142 +3,175 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody2D))]
-[RequireComponent(typeof(Collider2D))]
-public class Projectile : MonoBehaviour
+namespace Projectiles
 {
-
-    public Rigidbody2D Rigidbody { get; private set; }
-    public Collider2D Collider { get; private set; }
-    public ProjectileSO ProjectileSO { get; private set; }
-    public int HorizontalFacing { get; private set; } = 1;
-
-    ContactFilter2D hitMask;
-    ContactFilter2D collisionMask;
-
-    private readonly Collider2D[] colliders = new Collider2D[50];
-    private readonly HashSet<Collider2D> previousHits = new(50);
-    private float currentExpireTime = 0;
-    private Vector2 currentDirection;
-
-
-    private void Awake()
+    [RequireComponent(typeof(Rigidbody2D))]
+    [RequireComponent(typeof(Collider2D))]
+    public class Projectile : MonoBehaviour
     {
-        Rigidbody = GetComponent<Rigidbody2D>();
-        Collider = GetComponent<Collider2D>();
+        [field: SerializeField] public Collider2D HitSensor { get; private set; }
+        [field: SerializeField] public Collider2D HomingSensor { get; private set; }
 
-        hitMask = new ContactFilter2D
+        public Rigidbody2D Rigidbody { get; private set; }
+        public Collider2D CollisionSensor { get; private set; }
+        public ProjectileSO ProjectileSO { get; private set; }
+        public int HorizontalFacing { get; private set; } = 1;
+
+        ContactFilter2D hitMask;
+        ContactFilter2D collisionMask;
+        ContactFilter2D homingMask;
+
+        private int numColliders = 0;
+        private readonly Collider2D[] colliders = new Collider2D[50];
+        private readonly HashSet<Collider2D> previousHits = new(50);
+        private float currentExpireTime = 0;
+
+
+        private void Awake()
         {
-            useTriggers = true
-        };
+            Rigidbody = GetComponent<Rigidbody2D>();
+            CollisionSensor = GetComponent<Collider2D>();
 
-        collisionMask = new ContactFilter2D
-        {
-            useTriggers = true
-        };
-
-        gameObject.SetActive(false);
-    }
-
-    public void Initialize(ProjectileSO projectileSO, Vector2 startPosition, Vector2 direction)
-    {
-        ProjectileSO = projectileSO;
-        transform.position = startPosition;
-        hitMask.SetLayerMask(LayerUtility.CombineMasks(ProjectileSO.HitMasks));
-        collisionMask.SetLayerMask(LayerUtility.CombineMasks(ProjectileSO.CollisionMasks));
-
-        currentExpireTime = ProjectileSO.Duration + Time.time;
-        currentDirection = direction;
-        gameObject.SetActive(true);
-    }
-
-    private void FixedUpdate()
-    {
-        Rigidbody.velocity = ProjectileSO.Speed * currentDirection;
-        ResolveFacing();
-
-        int numColliders = Collider.OverlapCollider(hitMask, colliders);
-
-        if(numColliders > 0)
-        {
-            for (int i = 0; i < numColliders; i++)
+            hitMask = new ContactFilter2D
             {
-                if (!previousHits.Contains(colliders[i]))
+                useTriggers = true
+            };
+
+            collisionMask = new ContactFilter2D
+            {
+                useTriggers = true
+            };
+
+            gameObject.SetActive(false);
+        }
+
+        public void Initialize(ProjectileSO projectileSO)
+        {
+            ProjectileSO = projectileSO;
+            hitMask.SetLayerMask(LayerUtility.CombineMasks(ProjectileSO.Hit.HitMasks));
+            collisionMask.SetLayerMask(LayerUtility.CombineMasks(ProjectileSO.Collision.CollisionMasks));
+            homingMask.SetLayerMask(LayerUtility.CombineMasks(ProjectileSO.Homing.HomingMasks));
+
+            currentExpireTime = ProjectileSO.Duration + Time.time;
+            gameObject.SetActive(true);
+        }
+
+        private void FixedUpdate()
+        {
+            Rigidbody.velocity = ProjectileSO.Speed * transform.right;
+
+            if (ProjectileSO.Hit.Enabled)
+            {
+                numColliders = HitSensor.OverlapCollider(hitMask, colliders);
+
+                if (numColliders > 0)
                 {
-                    OnHit(colliders[i]);
+                    for (int i = 0; i < numColliders; i++)
+                    {
+                        if (!previousHits.Contains(colliders[i]))
+                        {
+                            OnHit(colliders[i]);
+                        }
+
+                        previousHits.Add(colliders[i]);
+                    }
                 }
-
-                previousHits.Add(colliders[i]);
             }
-        }
 
-        numColliders = Collider.OverlapCollider(collisionMask, colliders);
-
-        if (numColliders > 0)
-        {
-            OnCollision();
-        }
-
-        if(currentExpireTime < Time.time)
-        {
-            ExpireProjectile();
-        }
-    }
-
-    private void OnHit(Collider2D target)
-    {
-        if(target.TryGetComponent(out IEffectable effectable))
-        {
-            if (ProjectileSO.EffectOnHit != null)
+            if (ProjectileSO.Collision.Enabled)
             {
-                effectable.ApplyEffect(ProjectileSO.EffectOnHit);
+                numColliders = CollisionSensor.OverlapCollider(collisionMask, colliders);
+
+                if (numColliders > 0)
+                {
+                    for (int i = 0; i < numColliders; i++)
+                    {
+                        OnCollision(colliders[i]);
+                    }
+
+                    ExpireProjectile();
+                    return;
+                }
             }
-        }
 
-        if (target.TryGetComponent(out IMovable movable))
-        {
-
-            if (ProjectileSO.ForceOnHit != null)
+            if (currentExpireTime < Time.time)
             {
-                Vector2 direction = Rigidbody.velocity.normalized;
-                movable.ApplyRelativeForce(direction.x, ProjectileSO.ForceOnHit);
+                ExpireProjectile();
+                return;
+            }
+
+            if (ProjectileSO.Homing.Enabled)
+            {
+                numColliders = HomingSensor.OverlapCollider(homingMask, colliders);
+
+                if (numColliders > 0)
+                {
+                    for (int i = 0; i < numColliders; i++)
+                    {
+                        Homing(colliders[i]);
+                    }
+
+                }
+            }
+
+        }
+
+        private void OnHit(Collider2D target)
+        {
+            if (target.TryGetComponent(out IEffectable effectable))
+            {
+                if (ProjectileSO.Hit.EffectOnHit != null)
+                {
+                    effectable.ApplyEffect(ProjectileSO.Hit.EffectOnHit);
+                }
+            }
+
+            if (target.TryGetComponent(out IMovable movable))
+            {
+
+                if (ProjectileSO.Hit.ForceOnHit != null)
+                {
+                    Vector2 direction = Rigidbody.velocity.normalized;
+                    movable.ApplyRelativeForce(direction.x, ProjectileSO.Hit.ForceOnHit);
+                }
             }
         }
-    }
 
-    private void OnCollision()
-    {
-        ExpireProjectile();
-    }
-
-    private void ExpireProjectile()
-    {
-        Destroy(gameObject);
-    }
-
-    protected void ResolveFacing()
-    {
-        int sign;
-
-        if (Rigidbody.velocity.x < 0)
+        private void OnCollision(Collider2D target)
         {
-            sign = -1;
+            if (target.TryGetComponent(out IEffectable effectable))
+            {
+                if (ProjectileSO.Collision.EffectOnCollision != null)
+                {
+                    effectable.ApplyEffect(ProjectileSO.Collision.EffectOnCollision);
+                }
+            }
+
+            if (target.TryGetComponent(out IMovable movable))
+            {
+
+                if (ProjectileSO.Collision.ForceOnCollision != null)
+                {
+                    Vector2 direction = Rigidbody.velocity.normalized;
+                    movable.ApplyRelativeForce(direction.x, ProjectileSO.Collision.ForceOnCollision);
+                }
+            }
         }
 
-        else
+        private void ExpireProjectile()
         {
-            sign = 1;
+            Destroy(gameObject);
         }
 
-        if (HorizontalFacing == sign)
+        private void Homing(Collider2D target)
         {
-            return;
+            Vector3 targetDirection = (target.transform.position - transform.position).normalized;
+            Vector3 rotatedDirection = Quaternion.Euler(0, 0, 90) * targetDirection;
+            Quaternion targetRotation = Quaternion.LookRotation(Vector3.forward, rotatedDirection);
+
+            float angularSpeed = ProjectileSO.Homing.AngularSpeed * Time.fixedDeltaTime;
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, angularSpeed);
         }
-
-        else HorizontalFacing = sign;
-
-        Vector3 localScale = transform.localScale;
-        localScale.x *= HorizontalFacing;
-        transform.localScale = localScale;
     }
+
 }
