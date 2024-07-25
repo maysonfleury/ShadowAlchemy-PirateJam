@@ -10,6 +10,7 @@ public class TimeManager : PersistentSingleton<TimeManager>
     public bool IsGamePaused {get; private set;}
     
     [SerializeField] private GameObject PauseScreen;
+    [SerializeField] private GameObject GameOverScreen;
 
     void Start()
     {
@@ -43,6 +44,12 @@ public class TimeManager : PersistentSingleton<TimeManager>
         PauseScreen.SetActive(false);
         IsGamePaused = false;
         Time.timeScale = 1.0f;
+    }
+
+    public void GameOver()
+    {
+        Time.timeScale = 0.1f;
+        GameOverScreen.SetActive(true);
     }
 
     public void HitStopFrames(float frameAmount)
