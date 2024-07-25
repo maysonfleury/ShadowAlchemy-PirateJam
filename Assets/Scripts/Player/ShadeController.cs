@@ -14,6 +14,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     [Space]
     [Header("Stats")]
     public float walkSpeed = 10;
+    public float movementSnappiness = 8.5f;
     public float jumpForce = 11;
     public float jumpBufferFrames = 50;
     public float coyoteFrames = 50;
@@ -64,6 +65,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     private bool coyoteEnabled;
     private RippleEffect camRipple;
     private SFXManager sfxManager;
+    private float xAxis;
 
     // Start is called before the first frame update
     void Start()
@@ -84,11 +86,11 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
         if (GameManager.Instance.State != GameManager.GameState.GameState)
             return;
 
-        float x = Input.GetAxis("Horizontal");
         float y = Input.GetAxis("Vertical");
         xRaw = Input.GetAxisRaw("Horizontal");
         yRaw = Input.GetAxisRaw("Vertical");
-        Vector2 dir = new Vector2(x, y);
+        xAxis = Mathf.Lerp(xAxis, xRaw, Time.deltaTime * movementSnappiness);
+        Vector2 dir = new Vector2(xAxis, y);
 
         Movement(dir);
         Aim();
@@ -434,7 +436,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
         camRipple.waveSpeed = 3.75f;
         camRipple.Emit(Camera.main.WorldToViewportPoint(transform.position));
 
-        //hasDashed = true;
+        hasDashed = false;
 
         float xVel;
         if (x == 0) xVel = rb.velocity.x;

@@ -176,9 +176,9 @@ public class PlayerFormController : MonoBehaviour
         {
             // Die
             sfxManager.Play("die");
-            currentHP--;
+            //currentHP--;
             Debug.Log("dead");
-            TimeManager.Instance.GameOver();
+            //TimeManager.Instance.GameOver();
         }
         else if (currentForm != PlayerForm.Shade && currentHP == 1)
         {
