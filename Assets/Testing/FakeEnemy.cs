@@ -25,7 +25,7 @@ public class FakeEnemy : MonoBehaviour, IEffectable, IMovable
 
     public void ApplyForce(ForceSO forceSO)
     {
-        Debug.Log("[FakeEnemy]: ApplyForce called on " + name + " from " + forceSO.name);
+        Debug.Log("[FakeEnemy]: ApplyForce called on " + name + " from " + forceSO.name );
         float new_x = 1 * forceSO.Direction.x;
         Vector2 velocity = new Vector2(new_x, forceSO.Direction.y).normalized * forceSO.Speed;
         GetComponent<Rigidbody2D>().AddForce(velocity, forceSO.ForceMode);
@@ -33,7 +33,7 @@ public class FakeEnemy : MonoBehaviour, IEffectable, IMovable
 
     public void ApplyRelativeForce(float forward, ForceSO forceSO)
     {
-        Debug.Log("[FakeEnemy]: ApplyRelativeForce called on " + name + " from " + forceSO.name);
+        Debug.Log("[FakeEnemy]: ApplyRelativeForce called on " + name + " from " + forceSO.name + " with forward " + forward);
         if(forward == 0)
         {
             forward = 1;

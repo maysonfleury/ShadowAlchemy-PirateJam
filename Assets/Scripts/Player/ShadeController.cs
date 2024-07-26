@@ -241,9 +241,6 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
             else
                 aimDir.x = Mathf.Clamp(Mathf.Abs(aimDir.x), 0f, attackRange) * Mathf.Sign(aimDir.x);
             aimDir.z = 0;
-
-            // Okay now aim
-            attackHitbox.transform.localPosition = aimDir;
         }
         else // Keyboard 4-directional aiming
         {
@@ -271,8 +268,11 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
                 else // Default to last left-right direction input
                     aimDir = new Vector3(side * attackRange, 0, 0);
             }
-            attackHitbox.transform.localPosition = aimDir;
         }
+
+        // Okay now aim
+        attackHitbox.transform.localPosition = aimDir;
+        attackHitbox.GetComponent<PlayerAttack>().forward = Mathf.Sign(aimDir.x);
     }
 
     private void Attack()

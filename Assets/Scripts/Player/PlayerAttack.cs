@@ -9,6 +9,7 @@ public class PlayerAttack : MonoBehaviour
     [SerializeField] EffectSO attackEffect;
     [SerializeField] ForceSO attackKnockback;
     [SerializeField] float hitStunLength;
+    public float forward;
     TimeManager timeManager;
     Collider2D attackHitbox;
 
@@ -35,7 +36,7 @@ public class PlayerAttack : MonoBehaviour
             }
             if (attackKnockback && col.TryGetComponent(out IMovable movable))
             {
-                movable.ApplyRelativeForce(0, attackKnockback);
+                movable.ApplyRelativeForce(forward, attackKnockback);
                 Debug.Log("[PlayerAttack]: Knockback sent");
             }
 
