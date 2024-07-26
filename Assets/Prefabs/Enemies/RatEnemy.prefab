@@ -281,6 +281,10 @@ PrefabInstance:
       propertyPath: <EnemyData>k__BackingField.<HasSleepState>k__BackingField
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 8585578638800487453, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: <EnemyData>k__BackingField.<PossessionType>k__BackingField
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 683515663145306395, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
     m_RemovedGameObjects:

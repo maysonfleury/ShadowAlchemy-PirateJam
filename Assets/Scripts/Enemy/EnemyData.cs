@@ -3,6 +3,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
+public enum PossessionType
+{
+    None = 0,
+    SkeletonArcher = 1,
+    SkeletonWarrior = 2,
+    Spider = 3,
+    Rat = 4,
+    Bat = 5,
+    Alchemist = 6,
+}
+
 namespace Enemy
 {
     public enum EnemyBehaviourType
@@ -16,6 +28,7 @@ namespace Enemy
     public class EnemyData
     {
         [field: SerializeField] public EnemyBehaviourType EnemyBehaviour { get; private set; }
+        [field: SerializeField] public PossessionType PossessionType { get; private set; }
         [field: SerializeField, Min(1)] public int DefaultHealth { get; private set; } = 1;
 
         [field: Space]

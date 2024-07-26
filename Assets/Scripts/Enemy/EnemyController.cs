@@ -709,13 +709,14 @@ namespace Enemy
         }
 
 
-        public bool TryPossession(out Transform transform)
+        public bool TryPossession(out PossessionType type)
         {
-            transform = null;
+            type = PossessionType.None;
 
-            if (EnemyState == EnemyState.Dying)
+            if (EnemyState == EnemyState.Dying 
+                || EnemyState == EnemyState.Sleeping)
             {
-                transform = this.transform;
+                type = EnemyData.PossessionType;
                 KillEnemy();
                 return true;
             }
