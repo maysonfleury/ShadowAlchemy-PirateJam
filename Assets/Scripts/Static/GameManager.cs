@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 
 public class GameManager : PersistentSingleton<GameManager> 
@@ -10,7 +11,8 @@ public class GameManager : PersistentSingleton<GameManager>
         LoadState = 1,
         IntroState = 2,
         GameState = 3,
-        EndState = 4,
+        PauseState = 4,
+        EndState = 5,
     }
 
 
@@ -19,8 +21,11 @@ public class GameManager : PersistentSingleton<GameManager>
 
     public GameState State { get; private set; }
 
-
-    //void Start() => ChangeState(GameState.StartState);
+    void Start()
+    {
+        Application.targetFrameRate = 60;
+        //ChangeState(GameState.StartState);
+    }
 
     public void ChangeState(GameState newState) {
         OnBeforeStateChanged?.Invoke(newState);
@@ -69,5 +74,10 @@ public class GameManager : PersistentSingleton<GameManager>
 
     private void HandleEndScene()
     {
+    }
+
+    public void ChangeScene(String scene)
+    {
+        SceneManager.LoadScene(scene);
     }
 }

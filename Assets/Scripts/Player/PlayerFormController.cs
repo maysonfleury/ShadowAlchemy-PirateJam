@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Cinemachine;
+using DG.Tweening;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -19,6 +20,8 @@ public class PlayerFormController : MonoBehaviour
     public PlayerForm currentForm;
     public Transform currentTransform;
     public int currentHP;
+    public int damagedStopTime;
+    public float damageSafetyTime = 0.7f;
 
     [SerializeField] ShadeController shadeController;
     [SerializeField] BatController batController;
@@ -57,7 +60,7 @@ public class PlayerFormController : MonoBehaviour
     {
         if (shadeController.gameObject.activeSelf == true)
         {
-            currentHP = 1;
+            currentHP = 2;
             currentTransform = shadeController.transform;
             currentForm = PlayerForm.Shade;
         }
@@ -109,7 +112,7 @@ public class PlayerFormController : MonoBehaviour
                     currentTransform.gameObject.SetActive(false);
                     currentTransform = shadeController.transform;
                 }
-                currentHP = 1;
+                currentHP = 2;
             break;
 
             case PlayerForm.Bat:
@@ -176,9 +179,9 @@ public class PlayerFormController : MonoBehaviour
         {
             // Die
             sfxManager.Play("die");
-            //currentHP--;
+            currentHP--;
             Debug.Log("dead");
-            //TimeManager.Instance.GameOver();
+            TimeManager.Instance.GameOver();
         }
         else if (currentForm != PlayerForm.Shade && currentHP == 1)
         {
@@ -213,9 +216,10 @@ public class PlayerFormController : MonoBehaviour
                 break;
             }
             currentHP--;
+            TimeManager.Instance.HitStopFrames(damagedStopTime);
         }
 
-        giveInvulnerability(1f);
+        giveInvulnerability(damageSafetyTime);
     }
 
     public void giveInvulnerability(float time)

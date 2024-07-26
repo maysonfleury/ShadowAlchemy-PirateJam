@@ -65009,7 +65009,7 @@ MonoBehaviour:
   ledgeHopStrength: 8.5
   dashSpeed: 50
   attackHitbox: {fileID: 1645747663}
-  mouseAiming: 0
+  mouseAiming: 1
   knockbackForce: 25
   attackCooldown: 0.5
   attackRange: 1

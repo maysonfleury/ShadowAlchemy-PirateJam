@@ -43,8 +43,10 @@ public class TimeManager : PersistentSingleton<TimeManager>
     public void UnPauseGame()
     {
         PauseScreen.SetActive(false);
+        GameOverScreen.SetActive(false);
         IsGamePaused = false;
         Time.timeScale = 1.0f;
+        GameManager.Instance.ChangeState(GameManager.GameState.GameState);
     }
 
     public void GameOver()
@@ -66,7 +68,7 @@ public class TimeManager : PersistentSingleton<TimeManager>
     {
         Debug.Log("ZA WARUDO");
         yield return new WaitForEndOfFrame();
-        Time.timeScale = 0.1f;
+        Time.timeScale = 0.05f;
         isTimeScaleChanged = true;
         //foreach (Rigidbody2D rbs in FindObjectsOfType<Rigidbody2D>())
         //    rbs.constraints = RigidbodyConstraints2D.FreezeAll;

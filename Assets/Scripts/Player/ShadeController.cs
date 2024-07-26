@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 using Effect;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IMovable
@@ -313,7 +314,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     {
         //FindObjectOfType<GhostTrail>().ShowGhost();
         StartCoroutine(GroundDash());
-        DOVirtual.Float(14, 0, .8f, RigidbodyDrag);
+        if (rb) DOVirtual.Float(14, 0, .8f, RigidbodyDrag);
 
         dashParticle.Play();
         rb.gravityScale = 0;
@@ -333,7 +334,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
 
     IEnumerator GroundDash()
     {
-        yield return new WaitForSeconds(.15f);
+        yield return new WaitForSeconds(.75f);
         if (coll.onGround)
             hasDashed = false;
     }
@@ -456,7 +457,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     IEnumerator KnockbackWait()
     {
         StartCoroutine(GroundDash());
-        DOVirtual.Float(14, 0, .8f, RigidbodyDrag);
+        if (rb) DOVirtual.Float(14, 0, .8f, RigidbodyDrag);
 
         dashParticle.Play();
         rb.gravityScale = 0;
@@ -528,7 +529,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
 
     void RigidbodyDrag(float x)
     {
-        rb.drag = x;
+        if (rb) rb.drag = x;
     }
 
 
@@ -543,9 +544,10 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
         sfxManager.Play("hit");
     }
 
-    public void OnTakeDamage()
+    public void OnTakeDamage(Vector2 damageOrigin)
     {
-        // TODO: idk something?
+        Vector2 knockbackDir = new Vector2(transform.position.x, transform.position.y) - damageOrigin;
+        Knockback(knockbackDir.x * knockbackForce, knockbackDir.y * knockbackForce);
     }
 
     public void OnWebEnter(float percentage)
