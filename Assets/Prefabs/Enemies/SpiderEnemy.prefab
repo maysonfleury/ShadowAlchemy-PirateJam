@@ -169,13 +169,17 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 793406007962767774, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 6200000, guid: a1f62d4673b1fb14fba75f58444b8f96, type: 2}
     - target: {fileID: 3352773344387736894, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 39.42
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3352773344387736894, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 5.83
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3352773344387736894, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: m_LocalPosition.z
@@ -209,9 +213,29 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3649303839949180330, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.75
+      objectReference: {fileID: 0}
+    - target: {fileID: 3649303839949180330, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.75
+      objectReference: {fileID: 0}
     - target: {fileID: 4715086810438688670, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: m_Name
       value: SpiderEnemy
+      objectReference: {fileID: 0}
+    - target: {fileID: 5898084442570724916, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.75
+      objectReference: {fileID: 0}
+    - target: {fileID: 5898084442570724916, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 5898084442570724916, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.15
       objectReference: {fileID: 0}
     - target: {fileID: 7555474895098492210, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: m_Controller
@@ -225,17 +249,61 @@ PrefabInstance:
       propertyPath: <EnemyData>k__BackingField.<HasSleepState>k__BackingField
       value: 1
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 683515663145306395, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
     m_RemovedGameObjects:
     - {fileID: 6370563376736001784, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 3352773344387736894, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       insertIndex: 3
       addedObject: {fileID: 824206592346055309}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4715086810438688670, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      insertIndex: 2
+      addedObject: {fileID: 9139291600509843014}
   m_SourcePrefab: {fileID: 100100000, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
 --- !u!4 &1945688647012874718 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3352773344387736894, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
   m_PrefabInstance: {fileID: 3857060486853385440}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &8424073723338064766 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4715086810438688670, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+  m_PrefabInstance: {fileID: 3857060486853385440}
+  m_PrefabAsset: {fileID: 0}
+--- !u!70 &9139291600509843014
+CapsuleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8424073723338064766}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 1}
+  m_Size: {x: 0.75, y: 1.5}
+  m_Direction: 0

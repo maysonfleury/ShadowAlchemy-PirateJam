@@ -10,7 +10,8 @@ namespace Projectiles
     public class ProjectileSO : ScriptableObject
     {
         [field: SerializeField] public float Speed { get; private set; } = 5f;
-        [field: SerializeField] public float Duration { get; private set; } = 5f;
+        [field: SerializeField, Min(0.1f)] public float Duration { get; private set; } = 5f;
+        [field: SerializeField] public float AngleOffset { get; private set; } = 5f;
         [field: SerializeField] public Hit Hit { get; private set; }
         [field: SerializeField] public Collision Collision { get; private set; }
         [field: SerializeField] public Homing Homing { get; private set; }

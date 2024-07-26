@@ -9,11 +9,10 @@ namespace Projectiles
     [RequireComponent(typeof(Collider2D))]
     public class Projectile : MonoBehaviour
     {
-        [field: SerializeField] public Collider2D HitSensor { get; private set; }
         [field: SerializeField] public Collider2D HomingSensor { get; private set; }
 
         public Rigidbody2D Rigidbody { get; private set; }
-        public Collider2D CollisionSensor { get; private set; }
+        public Collider2D Collider { get; private set; }
         public ProjectileSO ProjectileSO { get; private set; }
         public int HorizontalFacing { get; private set; } = 1;
 
@@ -30,7 +29,7 @@ namespace Projectiles
         private void Awake()
         {
             Rigidbody = GetComponent<Rigidbody2D>();
-            CollisionSensor = GetComponent<Collider2D>();
+            Collider = GetComponent<Collider2D>();
 
             hitMask = new ContactFilter2D
             {
@@ -62,7 +61,7 @@ namespace Projectiles
 
             if (ProjectileSO.Hit.Enabled)
             {
-                numColliders = HitSensor.OverlapCollider(hitMask, colliders);
+                numColliders = Collider.OverlapCollider(hitMask, colliders);
 
                 if (numColliders > 0)
                 {
@@ -80,7 +79,7 @@ namespace Projectiles
 
             if (ProjectileSO.Collision.Enabled)
             {
-                numColliders = CollisionSensor.OverlapCollider(collisionMask, colliders);
+                numColliders = Collider.OverlapCollider(collisionMask, colliders);
 
                 if (numColliders > 0)
                 {

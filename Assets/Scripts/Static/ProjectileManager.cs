@@ -39,7 +39,6 @@ namespace Projectiles
             for (int i = 0; i < numProjectiles; i++)
             {
                 float angle = initialAngleOffset + i * angleIncrement;
-                Debug.Log(direction);
                 Vector3 rotatedDirection = Quaternion.Euler(0, 0, 90) * direction;
                 rotation = Quaternion.LookRotation(Vector3.forward, rotatedDirection);
                 rotation *= Quaternion.AngleAxis(angle, Vector3.forward);

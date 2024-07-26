@@ -6,6 +6,6 @@ PhysicsMaterial2D:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Rat
-  friction: 3
-  bounciness: 0.5
+  m_Name: SkeletonArcherMaterial
+  friction: 4
+  bounciness: 0.1

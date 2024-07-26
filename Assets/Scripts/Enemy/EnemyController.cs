@@ -33,7 +33,7 @@ namespace Enemy
 
         [field: Space]
         [field: Header("Enemy Pivots")]
-        [field: SerializeField] public Transform AttackPivot { get; private set; }
+        [field: SerializeField] public Transform FirePivot { get; private set; }
         [field: SerializeField] public Transform FirePoint { get; private set; }
         [field: SerializeField] public Transform SightPivot { get; private set; }
 
@@ -51,6 +51,7 @@ namespace Enemy
 
         [field: Space]
         [field: Header("Attack Components")]
+        [field: SerializeField] public Collider2D AttackBox { get; private set; }
         [field: SerializeField] public ParticleSystem AttackParticles { get; private set; }
 
         public EnemyState EnemyState { get; private set; } = EnemyState.Inactive;
@@ -69,6 +70,12 @@ namespace Enemy
         private float currentFlipWaitTime = 0;
         private bool isWaitingToFlip = false;
         private Vector2 lastTargetDirection = Vector2.zero;
+
+        const float stabilizeTime = 1;
+        private float currentStabilizingTime = 0;
+
+        private bool attackBoxEnabled = false;
+        private EffectSO currentAttackEffect = null;
 
         private (Slow SlowData, float Duration) currentSlow = (null, 0f);
         private (Stun StunData, float Duration) currentStun = (null, 0f);
@@ -160,14 +167,29 @@ namespace Enemy
 
         protected void FixedUpdate()
         {
-            if(!GroundCheck() || Stunned)
+            if (!GroundCheck() || Stunned)
+            {
+                currentStabilizingTime = stabilizeTime + Time.time;
                 return;
+            }
+
+            else if (currentStabilizingTime > Time.time)
+            {
+                return;
+            }
+
+            Collider2D target;
 
             switch (EnemyState)
             {
                 case EnemyState.Sleeping:
-                    if (NearbyProximityCheck(out Collider2D collider)
-                    && SightCheck(collider.transform))
+                    if(currentStateDuration < Time.time)
+                    {
+                        ChangeState(EnemyState.Patrolling);
+                    }
+
+                    else if (NearbyProximityCheck(out target)
+                    && SightCheck(target.transform))
                     {
                         ChangeState(EnemyState.Patrolling);
                     }
@@ -181,8 +203,8 @@ namespace Enemy
                         ChangeState(EnemyState.Sleeping);
                     }
 
-                    if (PatrolProximityCheck(out collider)
-                        && SightCheck(collider.transform))
+                    if (PatrolProximityCheck(out target)
+                        && SightCheck(target.transform))
                     {
                         ChangeState(EnemyState.Chasing);
                     }
@@ -200,20 +222,19 @@ namespace Enemy
                     return;
 
                 case EnemyState.Chasing:
-                    if (currentAttackCooldown > Time.time
-                        && !EnemyData.ChaseOnAttackCooldown)
+                    if (currentAttackCooldown >= Time.time)
                     {
                         return;
                     }
 
-                    else if (ChaseProximityCheck(out collider)
-                        && SightCheck(collider.transform))
+                    else if (ChaseProximityCheck(out target)
+                        && SightCheck(target.transform))
                     {
-                        bool targetIsInFront = IsPointInFront(collider.transform.position);
+                        bool targetIsInFront = IsPointInFront(target.transform.position);
 
                         if(targetIsInFront)
                         {
-                            RotateAttackPivotTowards(collider.transform.position);
+                            RotateAttackPivotTowards(target.transform.position);
                         }
 
                         if (AttackProximityCheck(out _) 
@@ -258,8 +279,8 @@ namespace Enemy
                     return;
 
                 case EnemyState.Sweeping:
-                    if (SweepProximityCheck(out collider)
-                        && SightCheck(collider.transform))
+                    if (SweepProximityCheck(out target)
+                        && SightCheck(target.transform))
                     {
                         ChangeState(EnemyState.Chasing);
                     }
@@ -292,8 +313,8 @@ namespace Enemy
                 case EnemyState.Watching:
                     //TODO: Add state duration
 
-                    if (ChaseProximityCheck(out collider)
-                        && SightCheck(collider.transform))
+                    if (ChaseProximityCheck(out target)
+                        && SightCheck(target.transform))
                     {
 
                         if (AttackProximityCheck(out _) 
@@ -302,7 +323,7 @@ namespace Enemy
                             ChangeState(EnemyState.Attacking);
                         }
 
-                        else if (!IsPointInFront(collider.transform.position))
+                        else if (!IsPointInFront(target.transform.position))
                         {
                             ChangeState(EnemyState.Chasing);
                         }
@@ -337,6 +358,7 @@ namespace Enemy
             {
                 case EnemyState.Sleeping:
                     ResetAttackPivot();
+                    currentStateDuration = EnemyData.SleepDuration + Time.time;
                     break;
 
                 case EnemyState.Patrolling:
@@ -452,6 +474,7 @@ namespace Enemy
             }
 
             Rigidbody.velocity = direction * speed;
+            //Rigidbody.AddForce(direction * (speed - Rigidbody.velocity.magnitude));
         }
 
         protected void RemoveVelocity()
@@ -519,7 +542,7 @@ namespace Enemy
 
         private void RotateAttackPivotTowards(Vector2 targetPoint)
         {
-            Vector2 direction = GetDirection(AttackPivot.position, targetPoint) * HorizontalFacing;
+            Vector2 direction = GetDirection(FirePivot.position, targetPoint) * HorizontalFacing;
 
             const float angle = 75;
 
@@ -528,13 +551,13 @@ namespace Enemy
                 float targetAngle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
                 float clampedAngle = Mathf.Clamp(targetAngle, -angle, angle);
                 Quaternion targetRotation = Quaternion.Euler(0, 0, clampedAngle);
-                AttackPivot.rotation = targetRotation;
+                FirePivot.rotation = targetRotation;
             }
         }
 
         private void ResetAttackPivot()
         {
-            RotateAttackPivotTowards(new Vector2(HorizontalFacing, 0) + (Vector2)AttackPivot.position);
+            RotateAttackPivotTowards(new Vector2(HorizontalFacing, 0) + (Vector2)FirePivot.position);
         }
 
         private Vector2 GetDirection(Vector2 startPoint, Vector2 endPoint)
@@ -566,19 +589,21 @@ namespace Enemy
             return 0f;
         }
 
-        private void OnDrawGizmos()
+        private void EnableAttackBox(EffectSO effectSO)
         {
-            if (gizmoTarget != Vector3.zero)
-            {
-                Gizmos.color = UnityEngine.Color.red;
-                Gizmos.DrawLine(SightPivot.position, gizmoTarget);
-                Gizmos.DrawSphere(gizmoTarget, 0.2f);
-            }
+            attackBoxEnabled = true;
+            currentAttackEffect = effectSO;
+        }
+
+        private void DisableAttackBox()
+        {
+            attackBoxEnabled = false;
+            currentAttackEffect = null;
         }
 
         public void FireProjectile(ProjectileSO projectileSO)
         {
-            Vector2 dir = AttackPivot.right * HorizontalFacing;
+            Vector2 dir = FirePivot.right * HorizontalFacing;
             ProjectileManager.Instance.Request(projectileSO, FirePoint.transform.position, dir);
         }
 
@@ -633,6 +658,7 @@ namespace Enemy
             Destroy(gameObject);
         }
 
+
         public bool TryPossession(out Transform transform)
         {
             transform = null;
@@ -646,5 +672,16 @@ namespace Enemy
 
             else return false;
         }
+
+        private void OnDrawGizmos()
+        {
+            if (gizmoTarget != Vector3.zero)
+            {
+                Gizmos.color = UnityEngine.Color.red;
+                Gizmos.DrawLine(SightPivot.position, gizmoTarget);
+                Gizmos.DrawSphere(gizmoTarget, 0.2f);
+            }
+        }
+
     }
 }

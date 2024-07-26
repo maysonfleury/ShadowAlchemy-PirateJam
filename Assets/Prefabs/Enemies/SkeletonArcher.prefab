@@ -169,6 +169,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 683515663145306395, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 6200000, guid: c371d0c9505edb84cae578ceccb7bf24, type: 2}
     - target: {fileID: 3352773344387736894, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: m_LocalPosition.x
       value: -5.2
@@ -209,9 +213,17 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4513230885391650354, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 1.335
+      objectReference: {fileID: 0}
     - target: {fileID: 4715086810438688670, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: m_Name
-      value: SkeletonArcher Variant
+      value: SkeletonArcher
+      objectReference: {fileID: 0}
+    - target: {fileID: 5151121929896215018, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 1.335
       objectReference: {fileID: 0}
     - target: {fileID: 7555474895098492210, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: m_Controller

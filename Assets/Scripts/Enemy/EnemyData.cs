@@ -21,6 +21,7 @@ namespace Enemy
         [field: Space]
         [field: Header("Sleep State")]
         [field: SerializeField] public bool HasSleepState { get; private set; } = false;
+        [field: SerializeField] public float SleepDuration { get; private set; } = 5.0f;
 
         [field: Space]
         [field: Header("Patrol State")]
@@ -33,7 +34,7 @@ namespace Enemy
         [field: SerializeField] public float ChaseSpeed { get; private set; } = 10.0f;
         [field: SerializeField] public float ChaseFlipTime { get; private set; } = 0.2f;
         [field: SerializeField] public float ChaseFlipCooldown { get; private set; } = 0.5f;
-        [field: SerializeField] public bool ChaseOnAttackCooldown { get; private set; } = true;
+        //[field: SerializeField] public bool ChaseOnAttackCooldown { get; private set; } = true;
 
         [field: Space]
         [field: Header("Sweep State")]

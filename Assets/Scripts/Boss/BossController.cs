@@ -1,5 +1,6 @@
 using Effect;
 using Enemy;
+using Projectiles;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -67,9 +68,9 @@ namespace Boss
 
         public string[][] AttackPatterns = new string[][]
         {
-            new string[] { "Charge", "Charge", "Charge" },
-            //new string[] { "Stab", "Slash", "Charge" },
-            //new string[] { "Stab", "Slash", "Stab" },
+            new string[] { "Stab", "Slash", "Charge" },
+            new string[] { "Leap", "Stab", "Leap" },
+            new string[] { "FireballVolley", "Leap", "Charge" },
             //new string[] { "Slash", "Fissure", "Charge" },
             //new string[] { "BattleShout", "Slash", "Stab" },
             //new string[] { "LeapSlam", "Charge", "LeapSlam" },
@@ -161,7 +162,8 @@ namespace Boss
                 case BossState.Attacking:
                     if(AttackProximityCheck(out target))
                     {
-                        if(target.TryGetComponent(out IEffectable effectable))
+                        if(target.TryGetComponent(out IEffectable effectable) 
+                            && currentAttackEffect != null)
                         {
                             effectable.ApplyEffect(currentAttackEffect);
                         }
@@ -202,7 +204,7 @@ namespace Boss
             if ((currentAttackPattern < 0 || currentAttackPattern - 1 > AttackPatterns.Length)
                 || currentAttackIndex > AttackPatterns[currentAttackPattern].Length - 1)
             {
-                currentAttackPattern = UnityEngine.Random.Range(0, AttackPatterns.Length - 1);
+                currentAttackPattern = UnityEngine.Random.Range(0, AttackPatterns.Length);
                 currentAttackIndex = 0;
             }
 
@@ -303,7 +305,7 @@ namespace Boss
 
         public void ApplyEffect(EffectSO effectSO)
         {
-            throw new System.NotImplementedException();
+            //throw new System.NotImplementedException();
         }
 
         public void ApplyForce(ForceSO forceSO)
@@ -311,6 +313,12 @@ namespace Boss
             float new_x = HorizontalFacing * forceSO.Direction.x;
             Vector2 velocity = new Vector2(new_x, forceSO.Direction.y).normalized * forceSO.Speed;
             Rigidbody.AddForce(velocity, forceSO.ForceMode);
+        }
+
+        public void FireProjectile(ProjectileSO projectileSO)
+        {
+            Vector2 dir = FirePoint.right * HorizontalFacing;
+            ProjectileManager.Instance.Request(projectileSO, FirePoint.transform.position, dir);
         }
 
         public void ApplyRelativeForce(float forward, ForceSO forceSO)
