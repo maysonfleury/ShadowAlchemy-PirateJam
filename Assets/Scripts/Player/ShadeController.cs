@@ -17,6 +17,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     public float walkSpeed = 10;
     public float movementSnappiness = 8.5f;
     public float jumpForce = 11;
+    public float maxFallSpeed = 10f;
     public float jumpBufferFrames = 50;
     public float coyoteFrames = 50;
     public float wallSlideSpeed = 1;
@@ -67,6 +68,9 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     private RippleEffect camRipple;
     private SFXManager sfxManager;
     private float xAxis;
+    private float fallSpeedYDampingChangeThreshold;
+    private float wallJumpXDampingChangeThreshold;
+    public float wallJumpAmount;
 
     // Start is called before the first frame update
     void Start()
@@ -75,6 +79,8 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
         rb = GetComponent<Rigidbody2D>();
         camRipple = FindObjectOfType<RippleEffect>();
         sfxManager = FindObjectOfType<SFXManager>();
+        fallSpeedYDampingChangeThreshold = CameraManager.instance.fallSpeedYDampingThreshold;
+        wallJumpXDampingChangeThreshold = CameraManager.instance.wallJumpXDampingThreshold;
     }
 
     // Update is called once per frame
@@ -99,6 +105,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
         if (coll.onGround && !isDashing)
         {
             wallJumped = false;
+            wallJumpAmount = 0;
             GetComponent<GravityController>().enabled = true;
         }
 
@@ -162,6 +169,25 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
 
         //WallParticle(y);
 
+        // Dampen the camera's YDamping depending on fall velocity/time
+        if (rb.velocity.y < fallSpeedYDampingChangeThreshold && !CameraManager.instance.IsLerpingYDamping && !CameraManager.instance.LerpedFromPlayerFalling)
+            CameraManager.instance.LerpYDamping(true);
+        if (rb.velocity.y >= 0f && !CameraManager.instance.IsLerpingYDamping && CameraManager.instance.LerpedFromPlayerFalling)
+        {
+            CameraManager.instance.LerpedFromPlayerFalling = false;
+            CameraManager.instance.LerpYDamping(false);
+        }
+
+        // Dampen the camera's XDamping if the player is wallJumping
+        if (wallJumpAmount >= wallJumpXDampingChangeThreshold && !CameraManager.instance.IsLerpingXDamping && !CameraManager.instance.LerpedFromPlayerWallJumping)
+            CameraManager.instance.LerpXDamping(true);
+        if (wallJumpAmount < wallJumpXDampingChangeThreshold && !CameraManager.instance.IsLerpingXDamping && CameraManager.instance.LerpedFromPlayerWallJumping)
+        {
+            CameraManager.instance.LerpedFromPlayerWallJumping = false;
+            CameraManager.instance.LerpXDamping(false);
+        }
+
+        // Rotate and flip the model depending on which direction the player is moving
         if (xRaw == 0 || coll.onWall)
         {
             if(!DOTween.IsTweening(shadeModel.transform))
@@ -181,6 +207,12 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
             if (!DOTween.IsTweening(shadeModel.transform))
                 shadeModel.transform.DOLocalRotate(new Vector3(0, 0, 10), rotateTime);
         }
+    }
+
+    void FixedUpdate()
+    {
+        if (!coll.onGround)
+            rb.velocity = new Vector3(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -maxFallSpeed, maxFallSpeed * 5f));
     }
 
 
@@ -219,7 +251,12 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
             if (!coll.onGround || coll.onWall)
             {
                 if (yRaw != 0)
-                    aimDir = new Vector3(0, yRaw * attackRange, 0);
+                {
+                    if (yRaw > 0)
+                        aimDir = new Vector3(0, yRaw * attackRange, 0);
+                    else if (yRaw < 0)  // More forgiving hitbox for below player
+                        aimDir = new Vector3(0, yRaw * attackRange - 0.2f, 0);
+                }
                 else if (xRaw != 0)
                     aimDir = new Vector3(xRaw * attackRange, 0, 0);
                 else // Default to last left-right direction input
@@ -279,7 +316,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
 
         if (isSlowed)
         {
-            rb.velocity = new Vector2(rb.velocity.x * slowPercent * 0.4f, rb.velocity.y * slowPercent);
+            rb.velocity = new Vector2(rb.velocity.x * slowPercent, rb.velocity.y * slowPercent);
         }
     }
 
@@ -314,10 +351,10 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     {
         //FindObjectOfType<GhostTrail>().ShowGhost();
         StartCoroutine(GroundDash());
-        if (rb) DOVirtual.Float(14, 0, .8f, RigidbodyDrag);
+        if (rb) DOVirtual.Float(14, 0, .5f, RigidbodyDrag);
 
         dashParticle.Play();
-        rb.gravityScale = 0;
+        rb.gravityScale = 1f;
         GetComponent<GravityController>().enabled = false;
         wallJumped = true;
         isDashing = true;
@@ -326,7 +363,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
         yield return new WaitForSeconds(.3f);
 
         //dashParticle.Stop();
-        rb.gravityScale = 3;
+        rb.gravityScale = 3f;
         GetComponent<GravityController>().enabled = true;
         wallJumped = false;
         isDashing = false;
@@ -352,9 +389,10 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
 
         Vector2 wallDir = coll.onRightWall ? Vector2.left : Vector2.right;
 
-        Jump(Vector2.up + (wallDir / 1.5f), true);
+        Jump(Vector2.up + (wallDir / 2f), true);
 
         wallJumped = true;
+        wallJumpAmount++;
     }
 
     private void WallSlide()
