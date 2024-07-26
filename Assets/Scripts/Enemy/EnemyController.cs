@@ -1,3 +1,4 @@
+using Attacks;
 using Effect;
 using Projectiles;
 using System;
@@ -71,11 +72,11 @@ namespace Enemy
         private bool isWaitingToFlip = false;
         private Vector2 lastTargetDirection = Vector2.zero;
 
-        const float stabilizeTime = 1;
+        const float stabilizeTime = 0.5f;
         private float currentStabilizingTime = 0;
 
         private bool attackBoxEnabled = false;
-        private EffectSO currentAttackEffect = null;
+        private AttackSO currentAttackSO = null;
 
         private (Slow SlowData, float Duration) currentSlow = (null, 0f);
         private (Stun StunData, float Duration) currentStun = (null, 0f);
@@ -167,22 +168,16 @@ namespace Enemy
 
         protected void FixedUpdate()
         {
-            if (!GroundCheck() || Stunned)
-            {
-                currentStabilizingTime = stabilizeTime + Time.time;
-                return;
-            }
-
-            else if (currentStabilizingTime > Time.time)
-            {
-                return;
-            }
-
             Collider2D target;
 
             switch (EnemyState)
             {
                 case EnemyState.Sleeping:
+                    if(!IsStabilized())
+                    {
+                        return;
+                    }
+
                     if(currentStateDuration < Time.time)
                     {
                         ChangeState(EnemyState.Patrolling);
@@ -197,7 +192,12 @@ namespace Enemy
                     return;
 
                 case EnemyState.Patrolling:
-                    if(EnemyData.HasSleepState 
+                    if (!IsStabilized())
+                    {
+                        return;
+                    }
+
+                    if (EnemyData.HasSleepState 
                         && currentStateDuration < Time.time)
                     {
                         ChangeState(EnemyState.Sleeping);
@@ -222,6 +222,11 @@ namespace Enemy
                     return;
 
                 case EnemyState.Chasing:
+                    if (!IsStabilized())
+                    {
+                        return;
+                    }
+
                     if (currentAttackCooldown >= Time.time)
                     {
                         return;
@@ -279,6 +284,11 @@ namespace Enemy
                     return;
 
                 case EnemyState.Sweeping:
+                    if (!IsStabilized())
+                    {
+                        return;
+                    }
+
                     if (SweepProximityCheck(out target)
                         && SightCheck(target.transform))
                     {
@@ -303,6 +313,18 @@ namespace Enemy
                     return;
 
                 case EnemyState.Attacking:
+                    if (attackBoxEnabled
+                        && AttackHitboxProximityCheck(out target)
+                        && SightCheck(target.transform))
+                    {
+                        currentAttackSO.ApplyAttack(HorizontalFacing, target.transform);
+                    }
+
+                    if (!IsStabilized())
+                    {
+                        return;
+                    }
+
                     if (currentAttackAnimationTime < Time.time)
                     {
                         OnAttackComplete();
@@ -311,7 +333,10 @@ namespace Enemy
 
                     return;
                 case EnemyState.Watching:
-                    //TODO: Add state duration
+                    if (!IsStabilized())
+                    {
+                        return;
+                    }
 
                     if (ChaseProximityCheck(out target)
                         && SightCheck(target.transform))
@@ -522,6 +547,11 @@ namespace Enemy
             return ColliderCheck(AttackSensor, targetFilter, out hitCollider);
         }
 
+        private bool AttackHitboxProximityCheck(out Collider2D hitCollider)
+        {
+            return ColliderCheck(AttackBox, targetFilter, out hitCollider);
+        }
+
         private bool SightCheck(Transform target)
         {
             return RaycastTransformCheck(SightPivot.position, target, sightOcclusionMask);
@@ -573,6 +603,7 @@ namespace Enemy
         private void OnAttackComplete()
         {
             Debug.Log("Attack Completed");
+            DisableAttackBox();
             AttackParticles.Play();
         }
 
@@ -589,16 +620,16 @@ namespace Enemy
             return 0f;
         }
 
-        private void EnableAttackBox(EffectSO effectSO)
+        private void EnableAttackBox(AttackSO attackSO)
         {
             attackBoxEnabled = true;
-            currentAttackEffect = effectSO;
+            currentAttackSO = attackSO;
         }
 
         private void DisableAttackBox()
         {
             attackBoxEnabled = false;
-            currentAttackEffect = null;
+            currentAttackSO = null;
         }
 
         public void FireProjectile(ProjectileSO projectileSO)
@@ -620,6 +651,9 @@ namespace Enemy
 
         public void ApplyEffect(EffectSO effectSO)
         {
+            if (effectSO == null)
+                return;
+
             DamageHealth(effectSO.Damage);
 
             if(effectSO.SlowData.Enabled)
@@ -638,6 +672,22 @@ namespace Enemy
             float new_x = HorizontalFacing * forceSO.Direction.x;
             Vector2 velocity = new Vector2(new_x, forceSO.Direction.y).normalized * forceSO.Speed;
             Rigidbody.AddForce(velocity, forceSO.ForceMode);
+        }
+
+        private bool IsStabilized()
+        {
+            if (!GroundCheck() || Stunned)
+            {
+                currentStabilizingTime = stabilizeTime + Time.time;
+                return false;
+            }
+
+            else if (currentStabilizingTime > Time.time)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         public void ApplyRelativeForce(float forward, ForceSO forceSO)

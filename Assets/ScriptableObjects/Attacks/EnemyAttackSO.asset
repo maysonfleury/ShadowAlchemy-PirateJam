@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b86984decd62c499cc6d7da7a51042, type: 3}
+  m_Name: EnemyAttackSO
+  m_EditorClassIdentifier: 
+  <EffectSO>k__BackingField: {fileID: 11400000, guid: 34dbcf426d9078645b02eca9f811dc46, type: 2}
+  <ForceSO>k__BackingField: {fileID: 11400000, guid: d3e2345e9554bc34e970392ed6bf46e5, type: 2}

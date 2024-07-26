@@ -257,6 +257,22 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7983295267552125703, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.75
+      objectReference: {fileID: 0}
+    - target: {fileID: 7983295267552125703, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7983295267552125703, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.141
+      objectReference: {fileID: 0}
+    - target: {fileID: 7983295267552125703, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.484
+      objectReference: {fileID: 0}
     - target: {fileID: 8585578638800487453, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: <AttackSensor>k__BackingField
       value: 
