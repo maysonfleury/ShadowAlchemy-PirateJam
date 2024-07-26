@@ -19,9 +19,8 @@ namespace Enemy
 {
     public enum EnemyBehaviourType
     {
-        Neutral = 0,
-        Aggressive = 1,
-        Evasive = 2,
+        Aggressive = 0,
+        Evasive = 1,
     }
 
     [Serializable]
@@ -30,6 +29,7 @@ namespace Enemy
         [field: SerializeField] public EnemyBehaviourType EnemyBehaviour { get; private set; }
         [field: SerializeField] public PossessionType PossessionType { get; private set; }
         [field: SerializeField, Min(1)] public int DefaultHealth { get; private set; } = 1;
+        [field: SerializeField] public bool IsGrounded { get; private set; } = true;
 
         [field: Space]
         [field: Header("Sleep State")]
@@ -39,15 +39,19 @@ namespace Enemy
         [field: Space]
         [field: Header("Patrol State")]
         [field: SerializeField] public float PatrolSpeed { get; private set; } = 5.0f;
-        [field: SerializeField] public float PatrolFlipTime { get; private set; } = 1f;
         [field: SerializeField] public float PatrolDuration { get; private set; } = 5.0f;
+        [field: SerializeField] public float PatrolFlipTime { get; private set; } = 1f;
+
+        [field: Space]
+        [field: Header("Evasive State")]
+        [field: SerializeField] public float EvasiveSpeed { get; private set; } = 10.0f;
+        [field: SerializeField] public float EvasiveDuration { get; private set; } = 5.0f;
+        [field: SerializeField] public float EvasiveFlipTime { get; private set; } = 0.2f;
 
         [field: Space]
         [field: Header("Chase State")]
         [field: SerializeField] public float ChaseSpeed { get; private set; } = 10.0f;
         [field: SerializeField] public float ChaseFlipTime { get; private set; } = 0.2f;
-        [field: SerializeField] public float ChaseFlipCooldown { get; private set; } = 0.5f;
-        //[field: SerializeField] public bool ChaseOnAttackCooldown { get; private set; } = true;
 
         [field: Space]
         [field: Header("Sweep State")]

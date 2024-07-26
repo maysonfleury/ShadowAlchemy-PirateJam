@@ -178,9 +178,29 @@ PrefabInstance:
       value: 0.75
       objectReference: {fileID: 0}
     - target: {fileID: 793406007962767774, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_BodyType
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 793406007962767774, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: m_Material
       value: 
       objectReference: {fileID: 6200000, guid: ea34288adddef754e8db7244ad85c012, type: 2}
+    - target: {fileID: 793406007962767774, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_LinearDrag
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 793406007962767774, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_AngularDrag
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 793406007962767774, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_GravityScale
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 822212992053481356, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_Name
+      value: AlertSensor
+      objectReference: {fileID: 0}
     - target: {fileID: 1352487595285235591, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: m_Mesh
       value: 
@@ -278,7 +298,27 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 3005772913694333855}
     - target: {fileID: 8585578638800487453, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: <AlertedSensor>k__BackingField
+      value: 
+      objectReference: {fileID: 5801575492317230681}
+    - target: {fileID: 8585578638800487453, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: <EnemyData>k__BackingField.<IsGrounded>k__BackingField
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8585578638800487453, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: <EnemyData>k__BackingField.<EvasiveSpeed>k__BackingField
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8585578638800487453, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: <EnemyData>k__BackingField.<DefaultHealth>k__BackingField
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8585578638800487453, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: <EnemyData>k__BackingField.<HasSleepState>k__BackingField
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8585578638800487453, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: <EnemyData>k__BackingField.<EnemyBehaviour>k__BackingField
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8585578638800487453, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
@@ -338,6 +378,11 @@ CapsuleCollider2D:
   m_Offset: {x: 0, y: 0.5}
   m_Size: {x: 0.5, y: 1}
   m_Direction: 0
+--- !u!58 &5801575492317230681 stripped
+CircleCollider2D:
+  m_CorrespondingSourceObject: {fileID: 190195094731729369, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+  m_PrefabInstance: {fileID: 5917979784158093184}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &8982309427655654078 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3352773344387736894, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}

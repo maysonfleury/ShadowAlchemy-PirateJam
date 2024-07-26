@@ -11,6 +11,7 @@ namespace Enemy
         Inactive,
         Sleeping,
         Patrolling,
+        Evading,
         Chasing,
         Sweeping,
         Watching,
@@ -42,7 +43,7 @@ namespace Enemy
         [field: Header("Enemy Sensors")]
         //[field: SerializeField] public Collider2D NearbySensor { get; private set; }
         [field: SerializeField] public Collider2D PatrolSensor { get; private set; }
-        [field: SerializeField] public Collider2D ChaseSensor { get; private set; }
+        [field: SerializeField] public Collider2D AlertSensor { get; private set; }
         [field: SerializeField] public Collider2D SweepSensor { get; private set; }
         [field: SerializeField] public Collider2D AttackSensor { get; private set; }
         [field: SerializeField] public Collider2D LedgeSensor { get; private set; }
@@ -55,7 +56,7 @@ namespace Enemy
         [field: SerializeField] public Collider2D AttackBox { get; private set; }
         [field: SerializeField] public ParticleSystem AttackParticles { get; private set; }
 
-        public EnemyState EnemyState { get; private set; } = EnemyState.Inactive;
+        public EnemyState EnemyState { get; private set; } = EnemyState.Patrolling;
         public int HorizontalFacing { get; private set; } = 1;
 
 
@@ -142,7 +143,7 @@ namespace Enemy
             RigidbodyCollider = GetComponent<Collider2D>();
             Animator = GetComponent<Animator>();
 
-            EnemyState = EnemyState.Patrolling;
+            ChangeState(EnemyState.Patrolling);
 
             groundFilter = new ContactFilter2D
             {
@@ -159,6 +160,7 @@ namespace Enemy
 
             sightOcclusionMask = LayerUtility.CombineMasks(SightOcclusionMasks);
             attackAnimationLength = GetClipLength("Attack");
+
         }
 
         protected virtual void Start()
@@ -206,11 +208,21 @@ namespace Enemy
                     if (PatrolProximityCheck(out target)
                         && SightCheck(target.transform))
                     {
-                        ChangeState(EnemyState.Chasing);
+                        if (EnemyData.EnemyBehaviour == EnemyBehaviourType.Aggressive)
+                        {
+                            ChangeState(EnemyState.Chasing);
+                        }
+
+                        else if(EnemyData.EnemyBehaviour == EnemyBehaviourType.Evasive)
+                        {
+                            FlipCharacter();
+                            ChangeState(EnemyState.Evading);
+                        }
                     }
 
                     else if(LedgeCheck() || WallCheck())
                     {
+
                         PrepareFlipCharacter(EnemyData.PatrolFlipTime);
                     }
 
@@ -218,6 +230,37 @@ namespace Enemy
                     {
                         UpdateVelocity(new(HorizontalFacing, 0), EnemyData.PatrolSpeed);                       
                     }
+
+                    return;
+
+                case EnemyState.Evading:
+                    if (!IsStabilized())
+                    {
+                        return;
+                    }
+
+                    if (AlertedProximityCheck(out target)
+                       && SightCheck(target.transform))
+                    {
+                        currentStateDuration = EnemyData.EvasiveDuration + Time.time;
+
+                    }
+
+                    else if (currentStateDuration < Time.time)
+                    {
+                        ChangeState(EnemyState.Patrolling);
+                    }
+
+                    if (LedgeCheck() || WallCheck())
+                    {
+                        PrepareFlipCharacter(EnemyData.PatrolFlipTime);
+                    }
+
+                    else
+                    {
+                        UpdateVelocity(new(HorizontalFacing, 0), EnemyData.EvasiveSpeed);
+                    }
+
 
                     return;
 
@@ -232,7 +275,7 @@ namespace Enemy
                         return;
                     }
 
-                    else if (ChaseProximityCheck(out target)
+                    else if (AlertedProximityCheck(out target)
                         && SightCheck(target.transform))
                     {
                         bool targetIsInFront = IsPointInFront(target.transform.position);
@@ -338,7 +381,7 @@ namespace Enemy
                         return;
                     }
 
-                    if (ChaseProximityCheck(out target)
+                    if (AlertedProximityCheck(out target)
                         && SightCheck(target.transform))
                     {
 
@@ -383,12 +426,18 @@ namespace Enemy
             {
                 case EnemyState.Sleeping:
                     ResetAttackPivot();
+                    RemoveVelocity();
                     currentStateDuration = EnemyData.SleepDuration + Time.time;
                     break;
 
                 case EnemyState.Patrolling:
                     ResetAttackPivot();
                     currentStateDuration = EnemyData.PatrolDuration + Time.time;
+                    break;
+
+                case EnemyState.Evading:
+                    ResetAttackPivot();
+                    currentStateDuration = EnemyData.EvasiveDuration + Time.time;
                     break;
 
                 case EnemyState.Chasing:
@@ -509,11 +558,21 @@ namespace Enemy
 
         private bool GroundCheck()
         {
+            if(!EnemyData.IsGrounded)
+            {
+                return true;
+            }
+
             return ColliderCheck(GroundSensor, groundFilter, out _);
         }
 
         private bool LedgeCheck()
         {
+            if (!EnemyData.IsGrounded)
+            {
+                return false;
+            }
+
             return !ColliderCheck(LedgeSensor, groundFilter, out _);
         }
 
@@ -532,9 +591,9 @@ namespace Enemy
             return ColliderCheck(PatrolSensor, targetFilter, out hitCollider);
         }
 
-        private bool ChaseProximityCheck(out Collider2D hitCollider)
+        private bool AlertedProximityCheck(out Collider2D hitCollider)
         {
-            return ColliderCheck(ChaseSensor, targetFilter, out hitCollider);
+            return ColliderCheck(AlertSensor, targetFilter, out hitCollider);
         }
 
         private bool SweepProximityCheck(out Collider2D hitCollider)

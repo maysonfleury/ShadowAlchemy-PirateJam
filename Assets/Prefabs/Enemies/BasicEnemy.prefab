@@ -256,7 +256,7 @@ GameObject:
   - component: {fileID: 618039459912061155}
   - component: {fileID: 190195094731729369}
   m_Layer: 2
-  m_Name: ChaseSensor
+  m_Name: AlertSensor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -956,15 +956,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <EnemyData>k__BackingField:
     <EnemyBehaviour>k__BackingField: 1
+    <PossessionType>k__BackingField: 0
     <DefaultHealth>k__BackingField: 3
+    <IsGrounded>k__BackingField: 1
     <HasSleepState>k__BackingField: 0
     <SleepDuration>k__BackingField: 5
     <PatrolSpeed>k__BackingField: 2
-    <PatrolFlipTime>k__BackingField: 1
     <PatrolDuration>k__BackingField: 5
+    <PatrolFlipTime>k__BackingField: 1
+    <EvasiveSpeed>k__BackingField: 10
+    <EvasiveDuration>k__BackingField: 5
+    <EvasiveFlipTime>k__BackingField: 0.2
     <ChaseSpeed>k__BackingField: 6
     <ChaseFlipTime>k__BackingField: 0.2
-    <ChaseFlipCooldown>k__BackingField: 0.5
     <SweepSpeed>k__BackingField: 4
     <SweepDuration>k__BackingField: 5
     <SweepFlipTime>k__BackingField: 0.5
@@ -975,7 +979,7 @@ MonoBehaviour:
   <FirePoint>k__BackingField: {fileID: 2147016539611528619}
   <SightPivot>k__BackingField: {fileID: 8350797812806937206}
   <PatrolSensor>k__BackingField: {fileID: 5641598868908085278}
-  <ChaseSensor>k__BackingField: {fileID: 190195094731729369}
+  <AlertSensor>k__BackingField: {fileID: 190195094731729369}
   <SweepSensor>k__BackingField: {fileID: 7533410885980459573}
   <AttackSensor>k__BackingField: {fileID: 2702910349450977650}
   <LedgeSensor>k__BackingField: {fileID: 7446518281839373490}
