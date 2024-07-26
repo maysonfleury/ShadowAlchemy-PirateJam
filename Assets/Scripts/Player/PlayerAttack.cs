@@ -35,7 +35,7 @@ public class PlayerAttack : MonoBehaviour
             }
             if (attackKnockback && col.TryGetComponent(out IMovable movable))
             {
-                movable.ApplyForce(attackKnockback);
+                movable.ApplyRelativeForce(0, attackKnockback);
                 Debug.Log("[PlayerAttack]: Knockback sent");
             }
 
