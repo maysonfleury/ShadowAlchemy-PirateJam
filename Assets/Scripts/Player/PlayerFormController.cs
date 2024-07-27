@@ -197,22 +197,22 @@ public class PlayerFormController : MonoBehaviour
 
                 case PlayerForm.Bat:
                     // TODO: Bat hurt VFX/SFX
-                    sfxManager.Play("hit");
+                    sfxManager.Play("die");
                 break;
 
                 case PlayerForm.Rat:
                     // TODO: Rat hurt VFX/SFX
-                    sfxManager.Play("hit");
+                    sfxManager.Play("die");
                 break;
 
                 case PlayerForm.Spider:
                     // TODO: Spider hurt VFX/SFX
-                    sfxManager.Play("hit");
+                    sfxManager.Play("die");
                 break;
 
                 case PlayerForm.Skeleton:
                     // TODO: Skeleton hurt VFX/SFX
-                    sfxManager.Play("hit");
+                    sfxManager.Play("die");
                 break;
             }
             currentHP--;

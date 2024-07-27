@@ -17,20 +17,20 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     public float walkSpeed = 10;
     public float movementSnappiness = 8.5f;
     public float jumpForce = 11;
-    public float maxFallSpeed = 10f;
-    public float jumpBufferFrames = 50;
-    public float coyoteFrames = 50;
+    public float maxFallSpeed = 15f;
+    public float jumpBufferFrames = 4;
+    public float coyoteFrames = 3;
     public float wallSlideSpeed = 1;
-    public float wallJumpControl = 3.75f;
-    public float ledgeHopStrength = 1f;
+    public float wallJumpControl = 5f;
+    public float ledgeHopStrength = 8.5f;
     public float dashSpeed = 50;
 
     [Space]
     [Header("Combat")]
     public Collider2D attackHitbox;
     public bool mouseAiming;
-    public float knockbackForce = 10f;
-    public float attackCooldown = 1f;
+    public float knockbackForce = 25f;
+    public float attackCooldown = 0.55f;
     public float attackRange = 1f;
     public float floorHeight = -0.55f;
     public float feetHeight = -1.4f;
@@ -45,7 +45,6 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     public bool wallSlide;
     public bool isDashing;
     public bool isSlowed;
-    public int side = 1;
 
     [Space]
     [Header("Polish")]
@@ -53,13 +52,13 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     public ParticleSystem jumpParticle;
     public ParticleSystem attackParticle;
     public GameObject shadeModel;
-    public float rotateTime = 10f;
+    public float rotateTime = 0.08f;
+    public int side = 1;
     //public ParticleSystem wallJumpParticle;
     //public ParticleSystem slideParticle;
 
     // Private values
-    private float xRaw;
-    private float yRaw;
+    private float xRaw, yRaw;
     private Vector3 aimDir;
     public float slowPercent;
     private bool groundTouch;
@@ -577,8 +576,9 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
 
     public void OnHitEnemy(float stunLength)
     {
-        Debug.Log("[PlayerController]: Enemy was hit!");
+        Debug.Log("[ShadeController]: Enemy was hit!");
         Knockback(-aimDir.x, -aimDir.y);
+        TimeManager.Instance.HitStopFrames(stunLength);
         sfxManager.Play("hit");
     }
 
@@ -621,7 +621,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     public void ApplyForce(ForceSO forceSO)
     {
         Debug.Log("[ShadeController]: ApplyForce called on Player from " + forceSO.name);
-        DisableMovementForFrames(100f);
+        DisableMovementForSeconds(0.5f);
         float new_x = side * forceSO.Direction.x;
         Vector2 velocity = new Vector2(new_x, forceSO.Direction.y).normalized * forceSO.Speed;
         rb.AddForce(velocity, forceSO.ForceMode);
@@ -630,7 +630,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     public void ApplyRelativeForce(float forward, ForceSO forceSO)
     {
         Debug.Log("[ShadeController]: ApplyRelativeForce called on Player from " + forceSO.name);
-        DisableMovementForFrames(100f);
+        DisableMovementForSeconds(0.5f);
         if(forward == 0)
         {
             forward = 1;

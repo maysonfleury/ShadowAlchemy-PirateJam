@@ -22948,26 +22948,36 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rb: {fileID: 424809488}
   walkSpeed: 11
+  movementSnappiness: 8.5
   jumpForce: 9.75
-  jumpBufferFrames: 30
-  coyoteFrames: 20
-  wallSlideSpeed: 3
-  wallJumpControl: 4
+  maxFallSpeed: 15
+  jumpBufferFrames: 4
+  coyoteFrames: 3
+  wallSlideSpeed: 2
+  ledgeHopStrength: 8
+  wallJumpControl: 10
   attackHitbox: {fileID: 1446207812}
+  mouseAiming: 0
   attackCooldown: 1
-  attackRange: 1.4
+  attackRange: 1
   floorHeight: 0.13
   feetHeight: -1.4
   headHeight: 1.2
   hitBoxSize: 1.25
+  knockbackForce: 12
   canMove: 1
   canAttack: 1
   wallJumped: 0
   wallSlide: 0
   doubleJumped: 0
-  side: 1
+  isSlowed: 0
   jumpParticle: {fileID: 1456428082}
   attackParticle: {fileID: 1942777988}
+  ratModel: {fileID: 1614533160}
+  rotateTime: 0.08
+  side: 1
+  slowPercent: 0
+  wallJumpAmount: 0
 --- !u!1 &434245794
 GameObject:
   m_ObjectHideFlags: 0
@@ -58833,6 +58843,9 @@ MonoBehaviour:
   fallYOffset: 0.5
   fallYOffsetTime: 0.5
   fallSpeedYDampingThreshold: -15
+  wallJumpPanAmount: 3
+  jumpXPanTime: 0.35
+  wallJumpXDampingThreshold: 2
 --- !u!1 &820490561
 GameObject:
   m_ObjectHideFlags: 0
@@ -64600,7 +64613,7 @@ Transform:
   m_GameObject: {fileID: 882483619}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -10.2, y: -8.19, z: 0}
+  m_LocalPosition: {x: -10.2, y: -8.38, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -64617,8 +64630,8 @@ Light:
   serializedVersion: 10
   m_Type: 3
   m_Shape: 0
-  m_Color: {r: 0.8112691, g: 0.042452812, b: 1, a: 1}
-  m_Intensity: 1
+  m_Color: {r: 0.62898254, g: 0, b: 0.7830189, a: 1}
+  m_Intensity: 9.36
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -64659,7 +64672,7 @@ Light:
   m_RenderingLayerMask: 1
   m_Lightmapping: 2
   m_LightShadowCasterMode: 0
-  m_AreaSize: {x: 23.974508, y: 14.596705}
+  m_AreaSize: {x: 23.974508, y: 11.607466}
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
@@ -64978,7 +64991,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &970280020
 Transform:
   m_ObjectHideFlags: 0
@@ -65077,7 +65090,7 @@ MonoBehaviour:
   movementSnappiness: 8.5
   jumpForce: 11
   maxFallSpeed: 15
-  jumpBufferFrames: 3
+  jumpBufferFrames: 4
   coyoteFrames: 3
   wallSlideSpeed: 1
   wallJumpControl: 5
@@ -65098,13 +65111,14 @@ MonoBehaviour:
   wallSlide: 0
   isDashing: 0
   isSlowed: 0
-  side: 1
   dashParticle: {fileID: 125281960}
   jumpParticle: {fileID: 49673807}
   attackParticle: {fileID: 443784477}
   shadeModel: {fileID: 1583564251}
   rotateTime: 0.08
+  side: 1
   slowPercent: 0
+  wallJumpAmount: 0
 --- !u!114 &970280024
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -66614,13 +66628,19 @@ MonoBehaviour:
   rb: {fileID: 0}
   walkSpeed: 2.5
   flySpeed: 6
-  jumpForce: 9.25
+  jumpForce: 10
   jumpCooldown: 0.4
+  movementSnappiness: 8.5
+  maxFallSpeed: 10
   gravityStrength: 4.5
   canMove: 1
   canJump: 1
+  isSlowed: 0
   side: 1
   jumpParticle: {fileID: 74577808}
+  batModel: {fileID: 1475563032}
+  rotateTime: 0.1
+  slowPercent: 0
 --- !u!1 &1184425529
 GameObject:
   m_ObjectHideFlags: 0
@@ -72951,6 +72971,7 @@ GameObject:
   - component: {fileID: 1446207811}
   - component: {fileID: 1446207809}
   - component: {fileID: 1446207812}
+  - component: {fileID: 1446207813}
   m_Layer: 14
   m_Name: AttackHitbox
   m_TagString: Untagged
@@ -72968,7 +72989,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.8, y: 0.8, z: 0.1}
+  m_LocalScale: {x: 1.05, y: 0.7, z: 0.1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1942777986}
@@ -73059,6 +73080,22 @@ CapsuleCollider2D:
   m_Offset: {x: 0, y: 0}
   m_Size: {x: 1, y: 1}
   m_Direction: 0
+--- !u!114 &1446207813
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1446207806}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf1e9254208ec29418b2389208700958, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  attackEffect: {fileID: 11400000, guid: 1b27196ae08bfb246b0445d64e83421e, type: 2}
+  attackKnockback: {fileID: 11400000, guid: f33226cb5f61d4f45b4899c7c450aa7a, type: 2}
+  hitStunLength: 10
+  forward: 0
 --- !u!1 &1452936214
 GameObject:
   m_ObjectHideFlags: 0
@@ -84077,6 +84114,7 @@ MonoBehaviour:
   attackEffect: {fileID: 11400000, guid: 6136d7e298140ab47be0183bea7ba1b2, type: 2}
   attackKnockback: {fileID: 11400000, guid: 0811322719c4d6342b4b34d885cbd930, type: 2}
   hitStunLength: 10
+  forward: 0
 --- !u!1 &1673639194
 GameObject:
   m_ObjectHideFlags: 0

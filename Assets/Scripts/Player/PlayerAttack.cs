@@ -9,13 +9,11 @@ public class PlayerAttack : MonoBehaviour
     [SerializeField] EffectSO attackEffect;
     [SerializeField] ForceSO attackKnockback;
     [SerializeField] float hitStunLength;
-    public float forward;
-    TimeManager timeManager;
+    [HideInInspector] public float forward;
     Collider2D attackHitbox;
 
     void Start()
     {
-        timeManager = TimeManager.Instance;
         attackHitbox = GetComponent<Collider2D>();
     }
     
@@ -39,8 +37,6 @@ public class PlayerAttack : MonoBehaviour
                 movable.ApplyRelativeForce(forward, attackKnockback);
                 Debug.Log("[PlayerAttack]: Knockback sent");
             }
-
-            timeManager.HitStopFrames(hitStunLength);
 
             attackHitbox.enabled = false;
         }
