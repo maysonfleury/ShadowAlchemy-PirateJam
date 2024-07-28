@@ -79,7 +79,7 @@ public class PlayerFormController : MonoBehaviour
         else if (spiderController.gameObject.activeSelf == true)
         {
             currentTransform = spiderController.transform;
-            currentHP = 2;
+            currentHP = 3;
             currentForm = PlayerForm.Spider;
         }
         else if (skeletonController.gameObject.activeSelf == true)
@@ -151,7 +151,7 @@ public class PlayerFormController : MonoBehaviour
                     currentTransform.gameObject.SetActive(false);
                     currentTransform = spiderController.transform;
                 }
-                currentHP = 2;
+                currentHP = 3;
             break;
 
             case PlayerForm.Skeleton:
