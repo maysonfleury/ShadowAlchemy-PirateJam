@@ -57,7 +57,7 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
 
     // Private values
     private float xRaw, yRaw;
-    private Vector3 aimDir;
+    private Vector2 aimDir;
     public float slowPercent;
     private bool groundTouch;
     private bool coyoteEnabled;
@@ -230,7 +230,6 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
                 aimDir.x = Mathf.Clamp(Mathf.Abs(aimDir.x), hitBoxSize, attackRange) * Mathf.Sign(aimDir.x);
             else
                 aimDir.x = Mathf.Clamp(Mathf.Abs(aimDir.x), 0f, attackRange) * Mathf.Sign(aimDir.x);
-            aimDir.z = 0;
         }
         else // Keyboard 4-directional aiming
         {

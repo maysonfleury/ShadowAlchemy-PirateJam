@@ -42,6 +42,7 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
     public bool wallGrab;
     public bool wallJumped;
     public bool isSlowed;
+    public bool isInWeb;
 
     [Space]
     [Header("Polish")]
@@ -55,7 +56,7 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
 
     // Private values
     private float xRaw, yRaw;
-    private Vector3 aimDir;
+    private Vector2 aimDir;
     public float slowPercent;
     private bool groundTouch;
     private bool coyoteEnabled;
@@ -127,14 +128,13 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
                 wallGrab = false;
         }
         
-        if (wallGrab)
+        // Spider on the wall or in its web
+        if (wallGrab || isInWeb)
         {
             rb.gravityScale = 0;
             if(Math.Abs(xRaw) > 0.2f) rb.velocity = new Vector2(rb.velocity.x, 0);
 
-            float speedModifier = y > 0 ? .5f : 1;
-
-            rb.velocity = new Vector2(rb.velocity.x, y * (walkSpeed * speedModifier));
+            rb.velocity = new Vector2(rb.velocity.x, y * (walkSpeed / 1.5f));
         }
         else
         {
@@ -145,7 +145,7 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
         {
             //anim.SetTrigger("jump");
 
-            if (coll.onGround || coyoteEnabled)
+            if (coll.onGround || coyoteEnabled || isInWeb)
                 Jump(Vector2.up, false);
             else if (coll.onWall && !coll.onGround)
                 WallJump();
@@ -231,44 +231,44 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
             Vector3 cursorPos = cursorPosCam + (Camera.main.transform.forward * 15.0f);
             aimDir = (cursorPos - gameObject.transform.position).normalized * 10f;
 
-            // Don't hit the floor beneath you
-            if (coll.onGround)
-                aimDir.y = Mathf.Clamp(aimDir.y, floorHeight, attackRange + (attackRange * 0.4f));
-            else
-                aimDir.y = Mathf.Clamp(aimDir.y, feetHeight, attackRange + (attackRange * 0.4f));
-
-            // Don't hit yourself
-            if (Mathf.Abs(aimDir.y) < headHeight)
+            // All directions allowed in the web and on wall (prio on up/down)
+            if (coll.onWall || isInWeb)
+            {
+                aimDir.y = Mathf.Clamp(aimDir.y, feetHeight, attackRange);
+                if (Mathf.Abs(aimDir.y) < headHeight)
+                    aimDir.x = Mathf.Clamp(Mathf.Abs(aimDir.x), hitBoxSize, attackRange) * Mathf.Sign(aimDir.x);
+                else
+                    aimDir.x = Mathf.Clamp(Mathf.Abs(aimDir.x), 0f, attackRange) * Mathf.Sign(aimDir.x);
+            }
+            else // Only allow left-right on ground
+            {
                 aimDir.x = Mathf.Clamp(Mathf.Abs(aimDir.x), hitBoxSize, attackRange) * Mathf.Sign(aimDir.x);
-            else
-                aimDir.x = Mathf.Clamp(Mathf.Abs(aimDir.x), 0f, attackRange) * Mathf.Sign(aimDir.x);
-            aimDir.z = 0;
+                aimDir.y = 0;
+            }
         }
         else // Keyboard 4-directional aiming
         {
-            // Priotize up-down attacks in the air and on wall
-            if (!coll.onGround || coll.onWall)
+            // All directions allowed in the web and on wall (prio on up/down)
+            if (coll.onWall || isInWeb)
             {
                 if (yRaw != 0)
                 {
                     if (yRaw > 0)
-                        aimDir = new Vector3(0, yRaw * attackRange, 0);
+                        aimDir = new Vector2(0, yRaw * attackRange);
                     else if (yRaw < 0)  // More forgiving hitbox for below player
-                        aimDir = new Vector3(0, yRaw * attackRange - 0.2f, 0);
+                        aimDir = new Vector2(0, yRaw * attackRange - 0.2f);
                 }
                 else if (xRaw != 0)
-                    aimDir = new Vector3(xRaw * attackRange, 0, 0);
+                    aimDir = new Vector2(xRaw * attackRange, 0);
                 else // Default to last left-right direction input
-                    aimDir = new Vector3(side * attackRange, 0, 0);
+                    aimDir = new Vector2(side * attackRange, 0);
             }
-            else // Prioritize right-left attacks on the ground
+            else // Only allow right-left attacks on the ground
             {
                 if (xRaw != 0)
-                    aimDir = new Vector3(xRaw * attackRange, 0, 0);
-                else if (yRaw > 0)
-                    aimDir = new Vector3(0, yRaw * attackRange, 0);
+                    aimDir = new Vector2(xRaw * attackRange, 0);
                 else // Default to last left-right direction input
-                    aimDir = new Vector3(side * attackRange, 0, 0);
+                    aimDir = new Vector2(side * attackRange, 0);
             }
         }
 
@@ -514,8 +514,9 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
     {
         // Flat 5% slow for spiders in webs
         isSlowed = true;
-        slowPercent = (100f - 5) * 0.01f;
+        slowPercent = (100f - 15) * 0.01f;
         GetComponent<GravityController>().enabled = false;
+        isInWeb = true;
     }
 
     public void OnWebExit()
@@ -523,6 +524,7 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
         isSlowed = false;
         slowPercent = 0f;
         GetComponent<GravityController>().enabled = true;
+        isInWeb = false;
     }
 
     //********************************
