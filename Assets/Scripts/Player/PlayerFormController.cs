@@ -56,6 +56,15 @@ public class PlayerFormController : MonoBehaviour
     //    yield return null;
     //}
 
+    void Update()
+    {
+        if (Input.GetKey("[0]")) ChangeForm(PlayerForm.Shade, currentTransform.position);
+        if (Input.GetKey("[1]")) ChangeForm(PlayerForm.Rat, currentTransform.position);
+        if (Input.GetKey("[2]")) ChangeForm(PlayerForm.Bat, currentTransform.position);
+        if (Input.GetKey("[3]")) ChangeForm(PlayerForm.Spider, currentTransform.position);
+        if (Input.GetKey("[4]")) ChangeForm(PlayerForm.Skeleton, currentTransform.position);
+    }
+
     private void InitializeForm()
     {
         if (shadeController.gameObject.activeSelf == true)
