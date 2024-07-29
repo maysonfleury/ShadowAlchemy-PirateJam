@@ -10156,7 +10156,7 @@ Transform:
   m_GameObject: {fileID: 74577807}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.95, z: -0.5}
+  m_LocalPosition: {x: 0, y: -0.251, z: -0.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -10329,6 +10329,40 @@ Transform:
   - {fileID: 882483620}
   - {fileID: 854688189}
   - {fileID: 176603790}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &117865449
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 117865450}
+  m_Layer: 0
+  m_Name: MANAGERS
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &117865450
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 117865449}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 381590234}
+  - {fileID: 820490562}
+  - {fileID: 374375952}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &125281957
@@ -15982,8 +16016,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dafba02256142a94cb777bc47544d1c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fallMultiplier: 10
-  lowJumpMultiplier: 15
+  fallMultiplier: 8
+  lowJumpMultiplier: 12
 --- !u!4 &225511852
 Transform:
   m_ObjectHideFlags: 0
@@ -16605,7 +16639,7 @@ Transform:
   m_GameObject: {fileID: 323462015}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1.0899999, y: 2.7278657, z: -15}
+  m_LocalPosition: {x: -0.45, y: 2.8778658, z: -15}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -22158,7 +22192,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &374375951
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -22179,12 +22213,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 374375950}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 117865450}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &381590232
 GameObject:
@@ -22202,7 +22236,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &381590233
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -22232,7 +22266,7 @@ Transform:
   m_Children:
   - {fileID: 1805645169}
   - {fileID: 2091559888}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 117865450}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &394291951
 GameObject:
@@ -22944,8 +22978,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dafba02256142a94cb777bc47544d1c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fallMultiplier: 10
-  lowJumpMultiplier: 15
+  fallMultiplier: 5
+  lowJumpMultiplier: 10
 --- !u!114 &424809490
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -22967,7 +23001,7 @@ MonoBehaviour:
   coyoteFrames: 3
   wallSlideSpeed: 2
   ledgeHopStrength: 8
-  wallJumpControl: 10
+  wallJumpControl: 15
   attackHitbox: {fileID: 1446207812}
   mouseAiming: 1
   attackCooldown: 1
@@ -58874,7 +58908,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &820490562
 Transform:
   m_ObjectHideFlags: 0
@@ -58888,7 +58922,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 117865450}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &820490563
 MonoBehaviour:
@@ -64900,7 +64934,7 @@ Transform:
   m_GameObject: {fileID: 963194225}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1.0899999, y: 2.7278657, z: -15}
+  m_LocalPosition: {x: -0.45, y: 2.8778658, z: -15}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -65030,7 +65064,7 @@ Transform:
   m_GameObject: {fileID: 970280019}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.54, y: -0.15, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -65122,7 +65156,7 @@ MonoBehaviour:
   jumpBufferFrames: 4
   coyoteFrames: 3
   wallSlideSpeed: 1
-  wallJumpControl: 5
+  wallJumpControl: 4.2
   ledgeHopStrength: 8.5
   dashSpeed: 50
   attackHitbox: {fileID: 1645747663}
@@ -65187,8 +65221,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dafba02256142a94cb777bc47544d1c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fallMultiplier: 8.5
-  lowJumpMultiplier: 10
+  fallMultiplier: 3.75
+  lowJumpMultiplier: 8
 --- !u!1 &993137718
 GameObject:
   m_ObjectHideFlags: 0
@@ -66563,7 +66597,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.55, y: 0.35, z: 0.5}
+  m_LocalScale: {x: 1, y: 1, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1475563033}
@@ -66630,7 +66664,7 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
-  m_Size: {x: 1, y: 2}
+  m_Size: {x: 0.7, y: 0.7}
   m_Direction: 0
 --- !u!50 &1162844685
 Rigidbody2D:
@@ -66969,16 +67003,17 @@ MonoBehaviour:
   mouseAiming: 1
   knockbackForce: 25
   attackCooldown: 0.55
-  attackRange: 1
+  attackRange: 1.6
   floorHeight: -0.55
   feetHeight: -1.4
   headHeight: 1.2
-  hitBoxSize: 0.8
+  hitBoxSize: 1.4
   canMove: 1
   canAttack: 1
   wallGrab: 0
   wallJumped: 0
   isSlowed: 0
+  isInWeb: 0
   dashParticle: {fileID: 499135103}
   jumpParticle: {fileID: 638252868}
   attackParticle: {fileID: 697313246}
@@ -66998,7 +67033,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dafba02256142a94cb777bc47544d1c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fallMultiplier: 8.5
+  fallMultiplier: 5
   lowJumpMultiplier: 10
 --- !u!1 &1202953355
 GameObject:
@@ -83169,7 +83204,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.55, y: 0.35, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1162844682}
@@ -96382,8 +96417,6 @@ SceneRoots:
   - {fileID: 394291957}
   - {fileID: 840143498}
   - {fileID: 1756224891}
-  - {fileID: 381590234}
-  - {fileID: 820490562}
-  - {fileID: 374375952}
   - {fileID: 1385473540}
   - {fileID: 816746710}
+  - {fileID: 117865450}

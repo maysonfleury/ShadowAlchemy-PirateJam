@@ -328,7 +328,7 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
 
         Vector2 wallDir = coll.onRightWall ? Vector2.left : Vector2.right;
 
-        Jump(Vector2.up + (wallDir / 2f), true);
+        Jump((Vector2.up * 1.2f) + (wallDir / 1.5f), true);
 
         wallJumped = true;
         wallJumpAmount++;

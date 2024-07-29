@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.09903779, g: 0.110967614, b: 0.27989346, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -16016,8 +16016,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dafba02256142a94cb777bc47544d1c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fallMultiplier: 10
-  lowJumpMultiplier: 15
+  fallMultiplier: 8
+  lowJumpMultiplier: 12
 --- !u!4 &225511852
 Transform:
   m_ObjectHideFlags: 0
@@ -22978,8 +22978,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dafba02256142a94cb777bc47544d1c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fallMultiplier: 10
-  lowJumpMultiplier: 15
+  fallMultiplier: 5
+  lowJumpMultiplier: 10
 --- !u!114 &424809490
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -23001,7 +23001,7 @@ MonoBehaviour:
   coyoteFrames: 3
   wallSlideSpeed: 2
   ledgeHopStrength: 8
-  wallJumpControl: 10
+  wallJumpControl: 15
   attackHitbox: {fileID: 1446207812}
   mouseAiming: 0
   attackCooldown: 1
@@ -65156,7 +65156,7 @@ MonoBehaviour:
   jumpBufferFrames: 4
   coyoteFrames: 3
   wallSlideSpeed: 1
-  wallJumpControl: 5
+  wallJumpControl: 4.2
   ledgeHopStrength: 8.5
   dashSpeed: 50
   attackHitbox: {fileID: 1645747663}
@@ -65221,8 +65221,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dafba02256142a94cb777bc47544d1c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fallMultiplier: 8.5
-  lowJumpMultiplier: 10
+  fallMultiplier: 3.75
+  lowJumpMultiplier: 8
 --- !u!1 &993137718
 GameObject:
   m_ObjectHideFlags: 0
@@ -67033,7 +67033,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dafba02256142a94cb777bc47544d1c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fallMultiplier: 8.5
+  fallMultiplier: 5
   lowJumpMultiplier: 10
 --- !u!1 &1202953355
 GameObject:
