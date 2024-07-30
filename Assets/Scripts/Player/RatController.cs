@@ -112,6 +112,7 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
                 wallSlide = true;
                 WallSlide();
             }
+            doubleJumped = false;
         }
 
         if (!coll.onWall || coll.onGround)
@@ -123,7 +124,7 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
 
             if (coll.onGround || coyoteEnabled)
                 Jump(Vector2.up, false);
-            else if (coll.onWall && !coll.onGround)
+            else if (coll.onWall && !coll.onGround && !isSlowed)
                 WallJump();
             else if (!coll.onGround && !doubleJumped)
             {
@@ -304,7 +305,7 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
 
         if (isSlowed)
         {
-            rb.velocity = new Vector2(rb.velocity.x * slowPercent, rb.velocity.y * slowPercent);
+            rb.velocity = new Vector2(rb.velocity.x * slowPercent, rb.velocity.y * (slowPercent / 2f));
         }
     }
 
@@ -512,11 +513,7 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
     {
         isSlowed = true;
         slowPercent = (100f - percentage) * 0.01f;
-        rb.gravityScale *= slowPercent;
-        GetComponent<GravityController>().enabled = false;
         yield return new WaitForSeconds(duration);
-        rb.gravityScale = 3f;
-        GetComponent<GravityController>().enabled = true;
         isSlowed = false;
         slowPercent = 0f;
     }
@@ -561,6 +558,7 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
 
     public void OnWebEnter(float percentage)
     {
+        percentage *= 0.75f;    // Web slows Rats 25% more than Shade
         isSlowed = true;
         slowPercent = (100f - percentage) * 0.01f;
     }

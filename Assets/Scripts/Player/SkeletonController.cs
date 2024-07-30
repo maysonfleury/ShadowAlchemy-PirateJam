@@ -441,8 +441,9 @@ public class SkeletonController : MonoBehaviour, IPlayerController, IEffectable,
 
     public void OnWebEnter(float percentage)
     {
+        // Flat 15% slow for skeletons in webs
         isSlowed = true;
-        slowPercent = (100f - percentage) * 0.01f;
+        slowPercent = (100f - 15f) * 0.01f;
     }
 
     public void OnWebExit()

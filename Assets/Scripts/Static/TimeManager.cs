@@ -8,6 +8,7 @@ public class TimeManager : PersistentSingleton<TimeManager>
 {
     private bool isTimeScaleChanged = false;
     public bool IsGamePaused {get; private set;}
+    public float hitstopTimescale = 0.05f;
     
     [SerializeField] private GameObject PauseScreen;
     [SerializeField] private GameObject GameOverScreen;
@@ -68,7 +69,7 @@ public class TimeManager : PersistentSingleton<TimeManager>
     {
         Debug.Log("ZA WARUDO");
         yield return new WaitForEndOfFrame();
-        Time.timeScale = 0.05f;
+        Time.timeScale = hitstopTimescale;
         isTimeScaleChanged = true;
         //foreach (Rigidbody2D rbs in FindObjectsOfType<Rigidbody2D>())
         //    rbs.constraints = RigidbodyConstraints2D.FreezeAll;

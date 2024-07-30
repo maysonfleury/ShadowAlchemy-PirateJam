@@ -512,7 +512,7 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
 
     public void OnWebEnter(float percentage)
     {
-        // Flat 5% slow for spiders in webs
+        // Flat 15% slow for spiders in webs
         isSlowed = true;
         slowPercent = (100f - 15) * 0.01f;
         GetComponent<GravityController>().enabled = false;

@@ -133,7 +133,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
 
             if (coll.onGround || coyoteEnabled)
                 Jump(Vector2.up, false);
-            else if (coll.onWall && !coll.onGround)
+            else if (coll.onWall && !coll.onGround && !isSlowed)
                 WallJump();
             else
                 StartCoroutine(JumpBuffer(jumpBufferFrames));
@@ -541,8 +541,10 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     IEnumerator DisableMovementTime(float time)
     {
         canMove = false;
+        canAttack = false;
         yield return new WaitForSeconds(time);
         canMove = true;
+        canAttack = true;
     }
 
     public void SlowMovement(float percentage, float duration)
@@ -571,6 +573,11 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     void RigidbodyDrag(float x)
     {
         if (rb) rb.drag = x;
+    }
+
+    public void OnPossessEnemy()
+    {
+        DisableMovementForSeconds(0.5f);
     }
 
 

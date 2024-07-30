@@ -767,10 +767,18 @@ namespace Enemy
             Destroy(gameObject);
         }
 
+        public bool IsPossessable()
+        {
+            if (EnemyState == EnemyState.Dying || EnemyState == EnemyState.Sleeping)
+                return true;
+            else
+                return false;
+        }
 
-        public bool TryPossession(out PossessionType type)
+        public bool TryPossession(out PossessionType type, out Vector3 pos)
         {
             type = PossessionType.None;
+            pos = transform.position;
 
             if (EnemyState == EnemyState.Dying 
                 || EnemyState == EnemyState.Sleeping)
@@ -779,7 +787,7 @@ namespace Enemy
                 KillEnemy();
                 return true;
             }
-
+  
             else return false;
         }
 
