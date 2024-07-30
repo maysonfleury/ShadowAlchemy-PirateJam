@@ -9,9 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4a63547876acc8c4390e0b2569cd1b04, type: 3}
-  m_Name: RatDoubleJumpForceSO
+  m_Script: {fileID: 11500000, guid: d0b86984decd62c499cc6d7da7a51042, type: 3}
+  m_Name: RatAttackSO
   m_EditorClassIdentifier: 
-  <ForceMode>k__BackingField: 1
-  <Direction>k__BackingField: {x: 1, y: 1}
-  <Speed>k__BackingField: 10
+  <EffectSO>k__BackingField: {fileID: 11400000, guid: 34dbcf426d9078645b02eca9f811dc46, type: 2}
+  <ForceSO>k__BackingField: {fileID: 11400000, guid: d3e2345e9554bc34e970392ed6bf46e5, type: 2}

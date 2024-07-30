@@ -169,7 +169,7 @@ namespace Enemy
             targetFilter.SetLayerMask(LayerMask.GetMask("Player"));
 
             sightOcclusionMask = LayerUtility.CombineMasks(SightOcclusionMasks);
-            attackAnimationLength = GetClipLength("Attack");
+            attackAnimationLength = GetClipLength("Attack1");
 
         }
 
@@ -479,7 +479,7 @@ namespace Enemy
                         + Time.time;
 
                     ChangeAnimationState(AnimationState.Idle);
-                    Animator.SetTrigger("Attack");
+                    Animator.SetTrigger("Attack1");
 
                     break;
                 case EnemyState.Watching:
