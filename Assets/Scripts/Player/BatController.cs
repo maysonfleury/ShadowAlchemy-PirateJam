@@ -244,6 +244,7 @@ public class BatController : MonoBehaviour, IPlayerController, IEffectable, IMov
 
     public void OnWebEnter(float percentage)
     {
+        // Flat 90% slow for bats in webs
         isSlowed = true;
         slowPercent = (100f - 90f) * 0.01f;
     }

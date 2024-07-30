@@ -6,8 +6,7 @@ using UnityEngine;
 public class SpikeTrap : MonoBehaviour
 {
     [Header("Player Values")]
-    [SerializeField] float knockForward = 5f;
-    [SerializeField] float knockUp = 10f;
+    [SerializeField] float knockback = 5f;
     [SerializeField] ParticleSystem trapParticle;
 
     [Space]
@@ -15,7 +14,7 @@ public class SpikeTrap : MonoBehaviour
     [SerializeField] EffectSO damageEffect;
     [SerializeField] ForceSO knockbackEffect;
 
-    void OnCollisionEnter2D(Collision2D col)
+    void OnTriggerEnter2D(Collider2D col)
     {
         if (col.gameObject.CompareTag("Player"))
         {
@@ -28,28 +27,26 @@ public class SpikeTrap : MonoBehaviour
                 form.DamagePlayer();
                 form.giveInvulnerability(1f);
 
-                Rigidbody2D rb = col.gameObject.GetComponent<Rigidbody2D>();
-                rb.velocity = new Vector2(rb.velocity.x, 0);
-                if (rb.velocity.x > 0)
-                    rb.velocity += (Vector2.up * knockUp) + (Vector2.right * knockForward);
-                else
-                    rb.velocity += (Vector2.up * knockUp) + (Vector2.left * knockForward);
+                Vector2 up = transform.up;
 
-                trapParticle.gameObject.transform.position = col.transform.position;
-                trapParticle.Play();
+                Rigidbody2D rb = col.gameObject.GetComponent<Rigidbody2D>();
+                rb.velocity = up * knockback;
+                Debug.Log(rb.velocity); 
+                //trapParticle.gameObject.transform.position = col.transform.position;
+                //trapParticle.Play();
             }
         }
-        else if (col.gameObject.CompareTag("Enemy"))
-        {
-            Debug.Log("Enemy stepped on spikes!");
-            if (damageEffect && col.collider.TryGetComponent(out IEffectable effectable))
-            {
-                effectable.ApplyEffect(damageEffect);
-            }
-            if (knockbackEffect && col.collider.TryGetComponent(out IMovable movable))
-            {
-                movable.ApplyForce(knockbackEffect);
-            }
-        }
+        //else if (col.gameObject.CompareTag("Enemy"))
+        //{
+        //    Debug.Log("Enemy stepped on spikes!");
+        //    if (damageEffect && col.collider.TryGetComponent(out IEffectable effectable))
+        //    {
+        //        effectable.ApplyEffect(damageEffect);
+        //    }
+        //    if (knockbackEffect && col.collider.TryGetComponent(out IMovable movable))
+        //    {
+        //        movable.ApplyForce(knockbackEffect);
+        //    }
+        //}
     }
 }

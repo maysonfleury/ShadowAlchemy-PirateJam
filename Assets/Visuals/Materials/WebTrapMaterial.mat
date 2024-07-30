@@ -83,7 +83,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _Alpha: -6.22
-    - _Alpha_Clip: 0.25
+    - _Alpha_Clip: 0.2
     - _Ambient_Occlusion: 0
     - _BUILTIN_AlphaClip: 1
     - _BUILTIN_Blend: 0
@@ -101,15 +101,15 @@ Material:
     - _Cutoff: 0.334
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
-    - _Emissions: 0
+    - _Emissions: 0.66
     - _GlossMapScale: 1
     - _Glossiness: 1
     - _GlossyReflections: 1
-    - _Metallic: -3.8
+    - _Metallic: 0.28
     - _Mode: 1
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _Smoothness: -0.17
+    - _Smoothness: 0.32
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
@@ -117,6 +117,6 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 1, g: 1, b: 1, a: 0.5176471}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []

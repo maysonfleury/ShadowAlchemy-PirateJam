@@ -14,7 +14,8 @@ public class PlayerFormController : MonoBehaviour
         Bat,
         Rat,
         Spider,
-        Skeleton
+        SkeletonArcher,
+        SkeletonWarrior
     }
 
     public PlayerForm currentForm;
@@ -49,20 +50,14 @@ public class PlayerFormController : MonoBehaviour
         //StartCoroutine(ChangeFormRoutine(PlayerForm.Shade, 25f));
     }
 
-    //IEnumerator ChangeFormRoutine(PlayerForm form, float delay)
-    //{
-    //    yield return new WaitForSeconds(delay);
-    //    ChangeForm(form, currentTransform.position);
-    //    yield return null;
-    //}
-
     void Update()
     {
         if (Input.GetKey("[0]")) ChangeForm(PlayerForm.Shade, currentTransform.position);
         if (Input.GetKey("[1]")) ChangeForm(PlayerForm.Rat, currentTransform.position);
         if (Input.GetKey("[2]")) ChangeForm(PlayerForm.Bat, currentTransform.position);
         if (Input.GetKey("[3]")) ChangeForm(PlayerForm.Spider, currentTransform.position);
-        if (Input.GetKey("[4]")) ChangeForm(PlayerForm.Skeleton, currentTransform.position);
+        if (Input.GetKey("[4]")) ChangeForm(PlayerForm.SkeletonWarrior, currentTransform.position);
+        if (Input.GetKey("[5]")) ChangeForm(PlayerForm.SkeletonArcher, currentTransform.position);
     }
 
     private void InitializeForm()
@@ -95,7 +90,7 @@ public class PlayerFormController : MonoBehaviour
         {
             currentHP = 4;
             currentTransform = skeletonController.transform;
-            currentForm = PlayerForm.Skeleton;
+            currentForm = PlayerForm.SkeletonWarrior;
         }
         else
         {
@@ -105,15 +100,11 @@ public class PlayerFormController : MonoBehaviour
 
     public void ChangeForm(PlayerForm form, Vector3 newPosition)
     {
-        possessParticle.transform.position = currentTransform.position;
-        possessParticle.Play();
-        sfxManager.Play("possess");
-
         switch (form)
         {
             case PlayerForm.Shade:
                 shadeController.gameObject.SetActive(true);
-                shadeController.transform.position = currentTransform.position;
+                shadeController.transform.position = newPosition;
                 SetCameraTarget(shadeController.transform);
                 currentForm = PlayerForm.Shade;
                 if (currentTransform != shadeController.transform)
@@ -126,7 +117,7 @@ public class PlayerFormController : MonoBehaviour
 
             case PlayerForm.Bat:
                 batController.gameObject.SetActive(true);
-                batController.transform.position = currentTransform.position;
+                batController.transform.position = newPosition;
                 SetCameraTarget(batController.transform);
                 currentForm = PlayerForm.Bat;
                 if (currentTransform != batController.transform)
@@ -139,7 +130,7 @@ public class PlayerFormController : MonoBehaviour
 
             case PlayerForm.Rat:
                 ratController.gameObject.SetActive(true);
-                ratController.transform.position = currentTransform.position;
+                ratController.transform.position = newPosition;
                 SetCameraTarget(ratController.transform);
                 currentForm = PlayerForm.Rat;
                 if (currentTransform != ratController.transform)
@@ -152,7 +143,7 @@ public class PlayerFormController : MonoBehaviour
 
             case PlayerForm.Spider:
                 spiderController.gameObject.SetActive(true);
-                spiderController.transform.position = currentTransform.position;
+                spiderController.transform.position = newPosition;
                 SetCameraTarget(spiderController.transform);
                 currentForm = PlayerForm.Spider;
                 if (currentTransform != spiderController.transform)
@@ -163,11 +154,11 @@ public class PlayerFormController : MonoBehaviour
                 currentHP = 3;
             break;
 
-            case PlayerForm.Skeleton:
+            case PlayerForm.SkeletonWarrior:
                 skeletonController.gameObject.SetActive(true);
-                skeletonController.transform.position = currentTransform.position;
+                skeletonController.transform.position = newPosition;
                 SetCameraTarget(skeletonController.transform);
-                currentForm = PlayerForm.Skeleton;
+                currentForm = PlayerForm.SkeletonWarrior;
                 if (currentTransform != skeletonController.transform)
                 {
                     currentTransform.gameObject.SetActive(false);
@@ -176,6 +167,13 @@ public class PlayerFormController : MonoBehaviour
                 currentHP = 4;
             break;
         }
+    }
+
+    IEnumerator ChangeFormRoutine(PlayerForm form, Vector3 newPos, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        ChangeForm(form, newPos);
+        yield return null;
     }
 
     public void DamagePlayer()
@@ -219,7 +217,7 @@ public class PlayerFormController : MonoBehaviour
                     sfxManager.Play("die");
                 break;
 
-                case PlayerForm.Skeleton:
+                case PlayerForm.SkeletonWarrior:
                     // TODO: Skeleton hurt VFX/SFX
                     sfxManager.Play("die");
                 break;
@@ -229,6 +227,47 @@ public class PlayerFormController : MonoBehaviour
         }
 
         giveInvulnerability(damageSafetyTime);
+    }
+
+    public void PossessEnemy(PossessionType form, Vector2 newPosition)
+    {
+        giveInvulnerability(2f);
+
+        currentTransform.DOMove(newPosition, 1.5f).SetEase(Ease.InExpo);
+
+        possessParticle.transform.position = new Vector3(newPosition.x, newPosition.y, -0.5f);
+        possessParticle.Play();
+        sfxManager.Play("possess");
+
+        switch (form)
+        {
+            case PossessionType.SkeletonArcher:
+                StartCoroutine(ChangeFormRoutine(PlayerForm.SkeletonArcher, newPosition, 1.65f));
+            break;
+
+            case PossessionType.SkeletonWarrior:
+                StartCoroutine(ChangeFormRoutine(PlayerForm.SkeletonWarrior, newPosition, 1.65f));
+            break;
+
+            case PossessionType.Spider:
+                StartCoroutine(ChangeFormRoutine(PlayerForm.Spider, newPosition, 1.65f));
+            break;
+
+            case PossessionType.Rat:
+                StartCoroutine(ChangeFormRoutine(PlayerForm.Rat, newPosition, 1.65f));
+                //ChangeForm(PlayerForm.Rat, newPosition);
+            break;
+
+            case PossessionType.Bat:
+                StartCoroutine(ChangeFormRoutine(PlayerForm.Bat, newPosition, 1.65f));
+            break;
+
+            case PossessionType.Alchemist:
+            break;
+
+            case PossessionType.None:
+            break;
+        }
     }
 
     public void giveInvulnerability(float time)

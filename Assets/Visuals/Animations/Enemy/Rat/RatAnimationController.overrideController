@@ -9,5 +9,19 @@ AnimatorOverrideController:
   m_Name: RatAnimationController
   m_Controller: {fileID: 9100000, guid: 8eee6d8edc6caef4a87d6a7117dc8697, type: 2}
   m_Clips:
-  - m_OriginalClip: {fileID: 7400000, guid: ea10fc15c20fbb9489a804767125def9, type: 2}
-    m_OverrideClip: {fileID: 7400000, guid: 163b06e97c5a8874fb958e565dc7360d, type: 2}
+  - m_OriginalClip: {fileID: 1187874368363982523, guid: 09257d6b78d5e324bb4fef26de8a7cc0, type: 3}
+    m_OverrideClip: {fileID: 1187874368363982523, guid: 09257d6b78d5e324bb4fef26de8a7cc0, type: 3}
+  - m_OriginalClip: {fileID: 7895079629541854520, guid: 3c989b651e3c3e94bbe594b9345e64ea, type: 3}
+    m_OverrideClip: {fileID: 7895079629541854520, guid: 3c989b651e3c3e94bbe594b9345e64ea, type: 3}
+  - m_OriginalClip: {fileID: 4752406332565295305, guid: 69455c56ffc14144fb5ded490243a714, type: 3}
+    m_OverrideClip: {fileID: 4752406332565295305, guid: 69455c56ffc14144fb5ded490243a714, type: 3}
+  - m_OriginalClip: {fileID: -2610371401957849891, guid: 341129abee4d4d246888930641cb5b0b, type: 3}
+    m_OverrideClip: {fileID: -2610371401957849891, guid: 341129abee4d4d246888930641cb5b0b, type: 3}
+  - m_OriginalClip: {fileID: 7400000, guid: afece070cb414994eb9d70ea8a6fd1a3, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: afece070cb414994eb9d70ea8a6fd1a3, type: 2}
+  - m_OriginalClip: {fileID: 4429740019608131472, guid: d3007ea686e7b5f4c9aeafd4bbb24716, type: 3}
+    m_OverrideClip: {fileID: 4429740019608131472, guid: d3007ea686e7b5f4c9aeafd4bbb24716, type: 3}
+  - m_OriginalClip: {fileID: 1712786815626058264, guid: 083450ec69e07954a90d9ac63c77d9c9, type: 3}
+    m_OverrideClip: {fileID: 1712786815626058264, guid: 083450ec69e07954a90d9ac63c77d9c9, type: 3}
+  - m_OriginalClip: {fileID: -8760350481240196908, guid: 07588e7ee1557e4428a184180dd3521a, type: 3}
+    m_OverrideClip: {fileID: -8760350481240196908, guid: 07588e7ee1557e4428a184180dd3521a, type: 3}
