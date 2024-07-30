@@ -6,4 +6,7 @@ public interface IPlayerController
     public void OnTakeDamage(Vector2 damageOrigin);
     public void OnWebEnter(float slowPercent);
     public void OnWebExit();
+    public void OnHitSpikes(Vector2 launchTarget, float launchStrength);
+    public void DisableMovement();
+    public void EnableMovement();
 }

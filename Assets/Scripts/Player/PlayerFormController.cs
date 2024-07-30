@@ -28,7 +28,8 @@ public class PlayerFormController : MonoBehaviour
     [SerializeField] BatController batController;
     [SerializeField] RatController ratController;
     [SerializeField] SpiderController spiderController;
-    [SerializeField] SkeletonController skeletonController;
+    [SerializeField] SkeletonController skeletonWarriorController;
+    [SerializeField] SkeletonController skeletonArcherController;
     [SerializeField] ParticleSystem possessParticle;
     
     private SFXManager sfxManager;
@@ -86,11 +87,17 @@ public class PlayerFormController : MonoBehaviour
             currentHP = 3;
             currentForm = PlayerForm.Spider;
         }
-        else if (skeletonController.gameObject.activeSelf == true)
+        else if (skeletonWarriorController.gameObject.activeSelf == true)
         {
             currentHP = 4;
-            currentTransform = skeletonController.transform;
+            currentTransform = skeletonWarriorController.transform;
             currentForm = PlayerForm.SkeletonWarrior;
+        }
+        else if (skeletonArcherController.gameObject.activeSelf == true)
+        {
+            currentHP = 4;
+            currentTransform = skeletonArcherController.transform;
+            currentForm = PlayerForm.SkeletonArcher;
         }
         else
         {
@@ -109,6 +116,7 @@ public class PlayerFormController : MonoBehaviour
                 currentForm = PlayerForm.Shade;
                 if (currentTransform != shadeController.transform)
                 {
+                    shadeController.GetComponent<Rigidbody2D>().velocity += currentTransform.GetComponent<Rigidbody2D>().velocity;
                     currentTransform.gameObject.SetActive(false);
                     currentTransform = shadeController.transform;
                 }
@@ -155,14 +163,27 @@ public class PlayerFormController : MonoBehaviour
             break;
 
             case PlayerForm.SkeletonWarrior:
-                skeletonController.gameObject.SetActive(true);
-                skeletonController.transform.position = newPosition;
-                SetCameraTarget(skeletonController.transform);
+                skeletonWarriorController.gameObject.SetActive(true);
+                skeletonWarriorController.transform.position = newPosition;
+                SetCameraTarget(skeletonWarriorController.transform);
                 currentForm = PlayerForm.SkeletonWarrior;
-                if (currentTransform != skeletonController.transform)
+                if (currentTransform != skeletonWarriorController.transform)
                 {
                     currentTransform.gameObject.SetActive(false);
-                    currentTransform = skeletonController.transform;
+                    currentTransform = skeletonWarriorController.transform;
+                }
+                currentHP = 4;
+            break;
+
+            case PlayerForm.SkeletonArcher:
+                skeletonArcherController.gameObject.SetActive(true);
+                skeletonArcherController.transform.position = newPosition;
+                SetCameraTarget(skeletonArcherController.transform);
+                currentForm = PlayerForm.SkeletonArcher;
+                if (currentTransform != skeletonArcherController.transform)
+                {
+                    currentTransform.gameObject.SetActive(false);
+                    currentTransform = skeletonArcherController.transform;
                 }
                 currentHP = 4;
             break;
@@ -181,11 +202,11 @@ public class PlayerFormController : MonoBehaviour
         if (!canTakeDamage)
             return;
         Debug.Log("[PlayerFormController]: Player took damage.");
+        sfxManager.Play("die");
 
         if (currentForm == PlayerForm.Shade && currentHP == 1)
         {
             // Die
-            sfxManager.Play("die");
             currentHP--;
             Debug.Log("dead");
             TimeManager.Instance.GameOver();
@@ -199,27 +220,26 @@ public class PlayerFormController : MonoBehaviour
             switch (currentForm)
             {
                 case PlayerForm.Shade:
-                    sfxManager.Play("die");
                 break;
 
                 case PlayerForm.Bat:
                     // TODO: Bat hurt VFX/SFX
-                    sfxManager.Play("die");
                 break;
 
                 case PlayerForm.Rat:
                     // TODO: Rat hurt VFX/SFX
-                    sfxManager.Play("die");
                 break;
 
                 case PlayerForm.Spider:
                     // TODO: Spider hurt VFX/SFX
-                    sfxManager.Play("die");
                 break;
 
                 case PlayerForm.SkeletonWarrior:
                     // TODO: Skeleton hurt VFX/SFX
-                    sfxManager.Play("die");
+                break;
+
+                case PlayerForm.SkeletonArcher:
+                    // TODO: Skeleton hurt VFX/SFX
                 break;
             }
             currentHP--;
@@ -275,11 +295,24 @@ public class PlayerFormController : MonoBehaviour
         StartCoroutine(iFrameRoutine(time));
     }
 
+    public void DisableMovement(IPlayerController controller, float seconds)
+    {
+        StopCoroutine(DisableMovementRoutine(controller, 0.01f));
+        StartCoroutine(DisableMovementRoutine(controller, seconds));
+    }
+
     IEnumerator iFrameRoutine(float iFrameTime)
     {
         canTakeDamage = false;
         yield return new WaitForSeconds(iFrameTime);
         canTakeDamage = true;
+    }
+
+    IEnumerator DisableMovementRoutine(IPlayerController controller, float seconds)
+    {
+        controller.DisableMovement();
+        yield return new WaitForSeconds(seconds);
+        controller.EnableMovement();
     }
 
     private void SetCameraTarget(Transform newTarget)

@@ -39,6 +39,7 @@ public class BatController : MonoBehaviour, IPlayerController, IEffectable, IMov
 
     // Private values
     private SFXManager sfxManager;
+    private PlayerFormController playerFormController;
     private float xRaw, yRaw;
     public float slowPercent;
     private float xAxis;
@@ -51,6 +52,7 @@ public class BatController : MonoBehaviour, IPlayerController, IEffectable, IMov
         coll = GetComponent<Collision>();
         rb = GetComponent<Rigidbody2D>();
         sfxManager = FindObjectOfType<SFXManager>();
+        playerFormController = GetComponentInParent<PlayerFormController>();
         fallSpeedYDampingChangeThreshold = CameraManager.instance.fallSpeedYDampingThreshold * 0.5f;
         wallJumpXDampingChangeThreshold = CameraManager.instance.wallJumpXDampingThreshold;
     }
@@ -109,16 +111,16 @@ public class BatController : MonoBehaviour, IPlayerController, IEffectable, IMov
         else if(xRaw > 0)
         {
             side = 1;
-            //anim.Flip(side);
+            batModel.transform.localScale = new Vector3(side, 1, 1);
             if (!DOTween.IsTweening(batModel.transform))
-                batModel.transform.DOLocalRotate(new Vector3(0, 0, -10), rotateTime);
+                batModel.transform.DOLocalRotate(new Vector3(0, 0, -7), rotateTime);
         }
         else if (xRaw < 0)
         {
             side = -1;
-            //anim.Flip(side);
+            batModel.transform.localScale = new Vector3(side, 1, 1);
             if (!DOTween.IsTweening(batModel.transform))
-                batModel.transform.DOLocalRotate(new Vector3(0, 0, 10), rotateTime);
+                batModel.transform.DOLocalRotate(new Vector3(0, 0, 7), rotateTime);
         }
     }
 
@@ -186,19 +188,6 @@ public class BatController : MonoBehaviour, IPlayerController, IEffectable, IMov
         yield return null;
     }
 
-    public void DisableMovementForSeconds(float seconds)
-    {
-        StopCoroutine(DisableMovement(0f));
-        StartCoroutine(DisableMovement(seconds));
-    }
-
-    IEnumerator DisableMovement(float time)
-    {
-        canMove = false;
-        yield return new WaitForSeconds(time);
-        canMove = true;
-    }
-
     void RigidbodyDrag(float x)
     {
         rb.drag = x;
@@ -244,15 +233,30 @@ public class BatController : MonoBehaviour, IPlayerController, IEffectable, IMov
 
     public void OnWebEnter(float percentage)
     {
-        // Flat 90% slow for bats in webs
+        // Flat 95% slow for bats in webs
         isSlowed = true;
-        slowPercent = (100f - 90f) * 0.01f;
+        slowPercent = (100f - 95f) * 0.01f;
     }
 
     public void OnWebExit()
     {
         isSlowed = false;
         slowPercent = 0f;
+    }
+
+    public void OnHitSpikes(Vector2 launchTarget, float launchStrength)
+    {
+        // Instantly die
+    }
+
+    public void DisableMovement()
+    {
+        canMove = false;
+    }
+
+    public void EnableMovement()
+    {
+        canMove = true;
     }
 
     //********************************
@@ -262,9 +266,9 @@ public class BatController : MonoBehaviour, IPlayerController, IEffectable, IMov
     public void ApplyEffect(EffectSO effectSO)
     {
         if (effectSO.Damage > 0)
-            gameObject.transform.parent.GetComponent<PlayerFormController>().DamagePlayer();
+            playerFormController.DamagePlayer();
         if (effectSO.StunData.Enabled)
-            DisableMovementForSeconds(effectSO.StunData.Duration);
+            playerFormController.DisableMovement(this, effectSO.StunData.Duration);
         if (effectSO.SlowData.Enabled)
             SlowMovement(effectSO.SlowData.Percent, effectSO.SlowData.Duration);
     }
@@ -276,7 +280,7 @@ public class BatController : MonoBehaviour, IPlayerController, IEffectable, IMov
     public void ApplyForce(ForceSO forceSO)
     {
         Debug.Log("[ShadeController]: ApplyForce called on Player from " + forceSO.name);
-        DisableMovementForSeconds(0.5f);
+        playerFormController.DisableMovement(this, 0.5f);
         float new_x = side * forceSO.Direction.x;
         Vector2 velocity = new Vector2(new_x, forceSO.Direction.y).normalized * forceSO.Speed;
         rb.AddForce(velocity, forceSO.ForceMode);
@@ -285,7 +289,7 @@ public class BatController : MonoBehaviour, IPlayerController, IEffectable, IMov
     public void ApplyRelativeForce(float forward, ForceSO forceSO)
     {
         Debug.Log("[ShadeController]: ApplyRelativeForce called on Player from " + forceSO.name);
-        DisableMovementForSeconds(0.5f);
+        playerFormController.DisableMovement(this, 0.5f);
         if(forward == 0)
         {
             forward = 1;

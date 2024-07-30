@@ -48,6 +48,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
 
     [Space]
     [Header("Polish")]
+    public Animator animator;
     public ParticleSystem dashParticle;
     public ParticleSystem jumpParticle;
     public ParticleSystem attackParticle;
@@ -66,6 +67,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     private bool coyoteEnabled;
     private RippleEffect camRipple;
     private SFXManager sfxManager;
+    private PlayerFormController playerFormController;
     private float xAxis;
     private float fallSpeedYDampingChangeThreshold;
     private float wallJumpXDampingChangeThreshold;
@@ -78,6 +80,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
         rb = GetComponent<Rigidbody2D>();
         camRipple = FindObjectOfType<RippleEffect>();
         sfxManager = FindObjectOfType<SFXManager>();
+        playerFormController = GetComponentInParent<PlayerFormController>();
         fallSpeedYDampingChangeThreshold = CameraManager.instance.fallSpeedYDampingThreshold;
         wallJumpXDampingChangeThreshold = CameraManager.instance.wallJumpXDampingThreshold;
     }
@@ -120,7 +123,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
         if (!coll.onWall || coll.onGround)
             wallSlide = false;
 
-        if (!coll.onGround && !coll.onWall && coll.onLedge && wallJumped)
+        if (!coll.onGround && !coll.onWall && coll.onLedge)
         {
             Debug.Log("Ledge Hop!");
             Vector2 dirr = new Vector2(side, 1);
@@ -200,16 +203,16 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
         else if(xRaw > 0)
         {
             side = 1;
-            //anim.Flip(side);
+            shadeModel.transform.localScale = new Vector3(side, 1, 1);
             if (!DOTween.IsTweening(shadeModel.transform))
-                shadeModel.transform.DOLocalRotate(new Vector3(0, 0, -10), rotateTime);
+                shadeModel.transform.DOLocalRotate(new Vector3(0, 0, -7), rotateTime);
         }
         else if (xRaw < 0)
         {
             side = -1;
-            //anim.Flip(side);
+            shadeModel.transform.localScale = new Vector3(side, 1, 1);
             if (!DOTween.IsTweening(shadeModel.transform))
-                shadeModel.transform.DOLocalRotate(new Vector3(0, 0, 10), rotateTime);
+                shadeModel.transform.DOLocalRotate(new Vector3(0, 0, 7), rotateTime);
         }
     }
 
@@ -387,8 +390,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
         //    //anim.Flip(side);
         //}
 
-        StopCoroutine(DisableMovement(0));
-        StartCoroutine(DisableMovement(10f));
+        playerFormController.DisableMovement(this, 0.1f);
 
         Vector2 wallDir = coll.onRightWall ? Vector2.left : Vector2.right;
 
@@ -516,37 +518,6 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
         isDashing = false;
     }
 
-    public void DisableMovementForFrames(float frames)
-    {
-        Debug.Log("[ShadeController]: Disabling movement for " + frames + " frames");
-        StopCoroutine(DisableMovement(0f));
-        StartCoroutine(DisableMovement(frames));
-    }
-
-    IEnumerator DisableMovement(float frames)
-    {
-        canMove = false;
-        for (int i = 0; i < frames; i++)
-            yield return new WaitForEndOfFrame();
-        canMove = true;
-    }
-
-    public void DisableMovementForSeconds(float time)
-    {
-        Debug.Log("[ShadeController]: Disabling movement for " + time + "s");
-        StopCoroutine(DisableMovementTime(0f));
-        StartCoroutine(DisableMovementTime(time));
-    }
-
-    IEnumerator DisableMovementTime(float time)
-    {
-        canMove = false;
-        canAttack = false;
-        yield return new WaitForSeconds(time);
-        canMove = true;
-        canAttack = true;
-    }
-
     public void SlowMovement(float percentage, float duration)
     {
         if (!isSlowed)
@@ -577,7 +548,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
 
     public void OnPossessEnemy()
     {
-        DisableMovementForSeconds(0.5f);
+        playerFormController.DisableMovement(this, 0.5f);
     }
 
 
@@ -611,6 +582,21 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
         slowPercent = 0f;
     }
 
+    public void OnHitSpikes(Vector2 launchTarget, float launchStrength)
+    {
+        // Shade not affected by spikes
+    }
+
+    public void DisableMovement()
+    {
+        canMove = false;
+    }
+
+    public void EnableMovement()
+    {
+        canMove = true;
+    }
+
     //********************************
     //*         IEffectable          *
     //********************************
@@ -618,9 +604,9 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     public void ApplyEffect(EffectSO effectSO)
     {
         if (effectSO.Damage > 0)
-            gameObject.transform.parent.GetComponent<PlayerFormController>().DamagePlayer();
+            playerFormController.DamagePlayer();
         if (effectSO.StunData.Enabled)
-            DisableMovementForSeconds(effectSO.StunData.Duration);
+            playerFormController.DisableMovement(this, effectSO.StunData.Duration);
         if (effectSO.SlowData.Enabled)
             SlowMovement(effectSO.SlowData.Percent, effectSO.SlowData.Duration);
     }
@@ -632,7 +618,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     public void ApplyForce(ForceSO forceSO)
     {
         Debug.Log("[ShadeController]: ApplyForce called on Player from " + forceSO.name);
-        DisableMovementForSeconds(0.5f);
+        playerFormController.DisableMovement(this, 0.2f);
         float new_x = side * forceSO.Direction.x;
         Vector2 velocity = new Vector2(new_x, forceSO.Direction.y).normalized * forceSO.Speed;
         rb.AddForce(velocity, forceSO.ForceMode);
@@ -641,7 +627,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     public void ApplyRelativeForce(float forward, ForceSO forceSO)
     {
         Debug.Log("[ShadeController]: ApplyRelativeForce called on Player from " + forceSO.name);
-        DisableMovementForSeconds(0.5f);
+        playerFormController.DisableMovement(this, 0.2f);
         if(forward == 0)
         {
             forward = 1;
