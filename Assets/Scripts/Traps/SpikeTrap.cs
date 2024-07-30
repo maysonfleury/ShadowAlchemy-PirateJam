@@ -6,7 +6,8 @@ using UnityEngine;
 public class SpikeTrap : MonoBehaviour
 {
     [Header("Player Values")]
-    [SerializeField] float knockback = 5f;
+    [SerializeField] Transform launchTarget;
+    [SerializeField] float launchStrength = 40f;
     [SerializeField] ParticleSystem trapParticle;
 
     [Space]
@@ -22,28 +23,28 @@ public class SpikeTrap : MonoBehaviour
 
             PlayerFormController form = col.gameObject.GetComponentInParent<PlayerFormController>();
             
-            if (form.currentForm != PlayerFormController.PlayerForm.Shade)
+            if (launchTarget && col.gameObject.TryGetComponent(out IPlayerController controller))
             {
-                form.DamagePlayer();
-                form.giveInvulnerability(1f);
+                if (form.currentForm != PlayerFormController.PlayerForm.Shade)
+                {
+                    Vector2 launchDir = new Vector2(launchTarget.position.x - col.transform.position.x, launchTarget.position.y - col.transform.position.y).normalized;
+                    controller.OnHitSpikes(launchDir, launchStrength);
 
-                Vector2 up = transform.up;
+                    trapParticle.gameObject.transform.localPosition = new Vector2(col.transform.position.x, trapParticle.gameObject.transform.localPosition.y);
+                    trapParticle.Play();
 
-                Rigidbody2D rb = col.gameObject.GetComponent<Rigidbody2D>();
-                rb.velocity = up * knockback;
-                Debug.Log(rb.velocity); 
-                //trapParticle.gameObject.transform.position = col.transform.position;
-                //trapParticle.Play();
+                    form.DamagePlayer();
+                }
             }
         }
         //else if (col.gameObject.CompareTag("Enemy"))
         //{
         //    Debug.Log("Enemy stepped on spikes!");
-        //    if (damageEffect && col.collider.TryGetComponent(out IEffectable effectable))
+        //    if (damageEffect && col.TryGetComponent(out IEffectable effectable))
         //    {
         //        effectable.ApplyEffect(damageEffect);
         //    }
-        //    if (knockbackEffect && col.collider.TryGetComponent(out IMovable movable))
+        //    if (knockbackEffect && col.TryGetComponent(out IMovable movable))
         //    {
         //        movable.ApplyForce(knockbackEffect);
         //    }

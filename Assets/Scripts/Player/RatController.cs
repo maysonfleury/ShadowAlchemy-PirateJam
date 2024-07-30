@@ -63,6 +63,7 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
     private bool coyoteEnabled;
     private RippleEffect camRipple;
     private SFXManager sfxManager;
+    private PlayerFormController playerFormController;
     private float xAxis;
     private float fallSpeedYDampingChangeThreshold;
     private float wallJumpXDampingChangeThreshold;
@@ -75,6 +76,7 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
         rb = GetComponent<Rigidbody2D>();
         camRipple = FindObjectOfType<RippleEffect>();
         sfxManager = FindObjectOfType<SFXManager>();
+        playerFormController = GetComponentInParent<PlayerFormController>();
         fallSpeedYDampingChangeThreshold = CameraManager.instance.fallSpeedYDampingThreshold;
         wallJumpXDampingChangeThreshold = CameraManager.instance.wallJumpXDampingThreshold;
     }
@@ -188,16 +190,16 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
         else if(xRaw > 0)
         {
             side = 1;
-            //anim.Flip(side);
+            ratModel.transform.localScale = new Vector3(0.9f, 1.05f, 1);
             if (!DOTween.IsTweening(ratModel.transform))
-                ratModel.transform.DOLocalRotate(new Vector3(0, 0, -10), rotateTime);
+                ratModel.transform.DOLocalRotate(new Vector3(0, 0, -3), rotateTime);
         }
         else if (xRaw < 0)
         {
             side = -1;
-            //anim.Flip(side);
+            ratModel.transform.localScale = new Vector3(-0.9f, 1.05f, 1);
             if (!DOTween.IsTweening(ratModel.transform))
-                ratModel.transform.DOLocalRotate(new Vector3(0, 0, 10), rotateTime);
+                ratModel.transform.DOLocalRotate(new Vector3(0, 0, 3), rotateTime);
         }
     }
 
@@ -324,8 +326,7 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
         //    //anim.Flip(side);
         //}
 
-        StopCoroutine(DisableMovement(0));
-        StartCoroutine(DisableMovement(10f));
+        playerFormController.DisableMovement(this, 0.1f);
 
         Vector2 wallDir = coll.onRightWall ? Vector2.left : Vector2.right;
 
@@ -470,35 +471,6 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
         //isDashing = false;
     }
 
-    public void DisableMovementForFrames(float frames)
-    {
-        Debug.Log("[ShadeController]: Disabling movement for " + frames + " frames");
-        StopCoroutine(DisableMovement(0f));
-        StartCoroutine(DisableMovement(frames));
-    }
-
-    IEnumerator DisableMovement(float frames)
-    {
-        canMove = false;
-        for (int i = 0; i < frames; i++)
-            yield return new WaitForEndOfFrame();
-        canMove = true;
-    }
-
-    public void DisableMovementForSeconds(float time)
-    {
-        Debug.Log("[ShadeController]: Disabling movement for " + time + "s");
-        StopCoroutine(DisableMovementTime(0f));
-        StartCoroutine(DisableMovementTime(time));
-    }
-
-    IEnumerator DisableMovementTime(float time)
-    {
-        canMove = false;
-        yield return new WaitForSeconds(time);
-        canMove = true;
-    }
-
     public void SlowMovement(float percentage, float duration)
     {
         if (!isSlowed)
@@ -569,6 +541,23 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
         slowPercent = 0f;
     }
 
+    public void OnHitSpikes(Vector2 launchTarget, float launchStrength)
+    {
+        playerFormController.DisableMovement(this, 0.5f);
+        rb.velocity *= 0.2f;
+        rb.velocity += launchTarget * launchStrength;
+    }
+
+    public void DisableMovement()
+    {
+        canMove = false;
+    }
+
+    public void EnableMovement()
+    {
+        canMove = true;
+    }
+
     //********************************
     //*         IEffectable          *
     //********************************
@@ -576,9 +565,9 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
     public void ApplyEffect(EffectSO effectSO)
     {
         if (effectSO.Damage > 0)
-            gameObject.transform.parent.GetComponent<PlayerFormController>().DamagePlayer();
+            playerFormController.DamagePlayer();
         if (effectSO.StunData.Enabled)
-            DisableMovementForSeconds(effectSO.StunData.Duration);
+            playerFormController.DisableMovement(this, effectSO.StunData.Duration);
         if (effectSO.SlowData.Enabled)
             SlowMovement(effectSO.SlowData.Percent, effectSO.SlowData.Duration);
     }
@@ -590,7 +579,7 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
     public void ApplyForce(ForceSO forceSO)
     {
         Debug.Log("[ShadeController]: ApplyForce called on Player from " + forceSO.name);
-        DisableMovementForSeconds(0.5f);
+        playerFormController.DisableMovement(this, 0.2f);
         float new_x = side * forceSO.Direction.x;
         Vector2 velocity = new Vector2(new_x, forceSO.Direction.y).normalized * forceSO.Speed;
         rb.AddForce(velocity, forceSO.ForceMode);
@@ -599,7 +588,7 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
     public void ApplyRelativeForce(float forward, ForceSO forceSO)
     {
         Debug.Log("[ShadeController]: ApplyRelativeForce called on Player from " + forceSO.name);
-        DisableMovementForSeconds(0.5f);
+        playerFormController.DisableMovement(this, 0.2f);
         if(forward == 0)
         {
             forward = 1;

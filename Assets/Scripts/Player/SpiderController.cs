@@ -62,6 +62,7 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
     private bool coyoteEnabled;
     private RippleEffect camRipple;
     private SFXManager sfxManager;
+    private PlayerFormController playerFormController;
     private float xAxis;
     private float fallSpeedYDampingChangeThreshold;
     private float wallJumpXDampingChangeThreshold;
@@ -74,6 +75,7 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
         rb = GetComponent<Rigidbody2D>();
         camRipple = FindObjectOfType<RippleEffect>();
         sfxManager = FindObjectOfType<SFXManager>();
+        playerFormController = GetComponentInParent<PlayerFormController>();
         fallSpeedYDampingChangeThreshold = CameraManager.instance.fallSpeedYDampingThreshold;
         wallJumpXDampingChangeThreshold = CameraManager.instance.wallJumpXDampingThreshold;
     }
@@ -203,12 +205,12 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
         if(xRaw > 0)
         {
             side = 1;
-            //anim.Flip(side);
+            spiderModel.transform.localScale = new Vector3(2, 2, 1);
         }
         else if (xRaw < 0)
         {
             side = -1;
-            //anim.Flip(side);
+            spiderModel.transform.localScale = new Vector3(-2, 2, 1);
         }
     }
 
@@ -331,8 +333,7 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
 
     private void WallJump()
     {
-        StopCoroutine(DisableMovement(0));
-        StartCoroutine(DisableMovement(10f));
+        playerFormController.DisableMovement(this, 0.1f);
 
         wallJumped = true;
 
@@ -434,35 +435,6 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
         wallJumped = false;
     }
 
-    public void DisableMovementForFrames(float frames)
-    {
-        Debug.Log("[SpiderController]: Disabling movement for " + frames + " frames");
-        StopCoroutine(DisableMovement(0f));
-        StartCoroutine(DisableMovement(frames));
-    }
-
-    IEnumerator DisableMovement(float frames)
-    {
-        canMove = false;
-        for (int i = 0; i < frames; i++)
-            yield return new WaitForEndOfFrame();
-        canMove = true;
-    }
-
-    public void DisableMovementForSeconds(float time)
-    {
-        Debug.Log("[SpiderController]: Disabling movement for " + time + "s");
-        StopCoroutine(DisableMovementTime(0f));
-        StartCoroutine(DisableMovementTime(time));
-    }
-
-    IEnumerator DisableMovementTime(float time)
-    {
-        canMove = false;
-        yield return new WaitForSeconds(time);
-        canMove = true;
-    }
-
     public void SlowMovement(float percentage, float duration)
     {
         if (!isSlowed)
@@ -527,6 +499,23 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
         isInWeb = false;
     }
 
+    public void OnHitSpikes(Vector2 launchTarget, float launchStrength)
+    {
+        playerFormController.DisableMovement(this, 0.5f);
+        rb.velocity *= 0.2f;
+        rb.velocity += launchTarget * launchStrength;
+    }
+
+    public void DisableMovement()
+    {
+        canMove = false;
+    }
+
+    public void EnableMovement()
+    {
+        canMove = true;
+    }
+
     //********************************
     //*         IEffectable          *
     //********************************
@@ -534,9 +523,9 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
     public void ApplyEffect(EffectSO effectSO)
     {
         if (effectSO.Damage > 0)
-            gameObject.transform.parent.GetComponent<PlayerFormController>().DamagePlayer();
+            playerFormController.DamagePlayer();
         if (effectSO.StunData.Enabled)
-            DisableMovementForSeconds(effectSO.StunData.Duration);
+            playerFormController.DisableMovement(this, effectSO.StunData.Duration);
         if (effectSO.SlowData.Enabled)
             SlowMovement(effectSO.SlowData.Percent, effectSO.SlowData.Duration);
     }
@@ -548,7 +537,7 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
     public void ApplyForce(ForceSO forceSO)
     {
         Debug.Log("[SpiderController]: ApplyForce called on Player from " + forceSO.name);
-        DisableMovementForSeconds(0.5f);
+        playerFormController.DisableMovement(this, 0.2f);
         float new_x = side * forceSO.Direction.x;
         Vector2 velocity = new Vector2(new_x, forceSO.Direction.y).normalized * forceSO.Speed;
         rb.AddForce(velocity, forceSO.ForceMode);
@@ -557,7 +546,7 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
     public void ApplyRelativeForce(float forward, ForceSO forceSO)
     {
         Debug.Log("[SpiderController]: ApplyRelativeForce called on Player from " + forceSO.name);
-        DisableMovementForSeconds(0.5f);
+        playerFormController.DisableMovement(this, 0.2f);
         if(forward == 0)
         {
             forward = 1;
