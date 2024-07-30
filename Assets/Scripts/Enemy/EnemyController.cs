@@ -19,6 +19,14 @@ namespace Enemy
         Dying,
     }
 
+    public enum AnimationState
+    {
+        Idle = 0,
+        Moving = 1,
+        Sleeping = 2,
+        Death = 3,
+    }
+
     [RequireComponent(typeof(Animator))]
     [RequireComponent(typeof(Rigidbody2D))]
     [RequireComponent(typeof(Collider2D))]
@@ -67,8 +75,6 @@ namespace Enemy
         private float currentStateDuration = 0.0f;
         private LayerMask sightOcclusionMask;
         private float currentAttackCooldown = 0;
-        private float attackAnimationLength = 0;
-        private float currentAttackAnimationTime = 0;
         private float currentFlipWaitTime = 0;
         private bool isWaitingToFlip = false;
         private Vector2 lastTargetDirection = Vector2.zero;
@@ -78,6 +84,10 @@ namespace Enemy
 
         private bool attackBoxEnabled = false;
         private AttackSO currentAttackSO = null;
+
+        private float attackAnimationLength = 0;
+        private float currentAttackAnimationTime = 0;
+        private AnimationState currentAnimationState = AnimationState.Idle;
 
         private (Slow SlowData, float Duration) currentSlow = (null, 0f);
         private (Stun StunData, float Duration) currentStun = (null, 0f);
@@ -191,6 +201,8 @@ namespace Enemy
                         ChangeState(EnemyState.Patrolling);
                     }
 
+                    ChangeAnimationState(AnimationState.Sleeping);
+
                     return;
 
                 case EnemyState.Patrolling:
@@ -205,7 +217,7 @@ namespace Enemy
                         ChangeState(EnemyState.Sleeping);
                     }
 
-                    if (PatrolProximityCheck(out target)
+                    else if (PatrolProximityCheck(out target)
                         && SightCheck(target.transform))
                     {
                         if (EnemyData.EnemyBehaviour == EnemyBehaviourType.Aggressive)
@@ -224,11 +236,13 @@ namespace Enemy
                     {
 
                         PrepareFlipCharacter(EnemyData.PatrolFlipTime);
+                        ChangeAnimationState(AnimationState.Idle);
                     }
 
                     else
                     {
-                        UpdateVelocity(new(HorizontalFacing, 0), EnemyData.PatrolSpeed);                       
+                        UpdateVelocity(new(HorizontalFacing, 0), EnemyData.PatrolSpeed);
+                        ChangeAnimationState(AnimationState.Moving);
                     }
 
                     return;
@@ -259,6 +273,7 @@ namespace Enemy
                     else
                     {
                         UpdateVelocity(new(HorizontalFacing, 0), EnemyData.EvasiveSpeed);
+                        ChangeAnimationState(AnimationState.Moving);
                     }
 
 
@@ -310,11 +325,13 @@ namespace Enemy
                             else if(!targetIsInFront)
                             {
                                 PrepareFlipCharacter(EnemyData.ChaseFlipTime);
+                                ChangeAnimationState(AnimationState.Idle);
                             }
 
                             else
                             {
                                 UpdateVelocity(new(HorizontalFacing, 0), EnemyData.ChaseSpeed);
+                                ChangeAnimationState(AnimationState.Moving);
                             }
                         }
                     }
@@ -346,11 +363,13 @@ namespace Enemy
                     else if (LedgeCheck() || WallCheck())
                     {
                         PrepareFlipCharacter(EnemyData.SweepFlipTime);
+                        ChangeAnimationState(AnimationState.Idle);
                     }
 
                     else
                     {
                         UpdateVelocity(new(HorizontalFacing, 0), EnemyData.SweepSpeed);
+                        ChangeAnimationState(AnimationState.Moving);
                     }
 
                     return;
@@ -373,6 +392,8 @@ namespace Enemy
                         OnAttackComplete();
                         ChangeState(EnemyState.Chasing);
                     }
+
+                    ChangeAnimationState(AnimationState.Idle);
 
                     return;
                 case EnemyState.Watching:
@@ -401,9 +422,13 @@ namespace Enemy
                     {
                         ChangeState(EnemyState.Sweeping);
                     }
+
+                    ChangeAnimationState(AnimationState.Idle);
+
                     return;
 
                 case EnemyState.Dying:
+                    ChangeAnimationState(AnimationState.Death);
                     if (currentStateDuration < Time.time)
                     {
                         KillEnemy();
@@ -453,8 +478,8 @@ namespace Enemy
                         + EnemyData.AttackCooldown
                         + Time.time;
 
+                    ChangeAnimationState(AnimationState.Idle);
                     Animator.SetTrigger("Attack");
-                    Debug.Log("Attacking");
 
                     break;
                 case EnemyState.Watching:
@@ -801,5 +826,10 @@ namespace Enemy
             }
         }
 
+        public void ChangeAnimationState(AnimationState animationState)
+        {
+            currentAnimationState = animationState;
+            Animator.SetInteger("AnimationState", (int)currentAnimationState);
+        }
     }
 }
