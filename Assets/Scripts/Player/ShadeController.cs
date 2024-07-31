@@ -311,7 +311,6 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
         Invoke(nameof(ResetAttack), attackCooldown);
         Invoke(nameof(DisableHitbox), 0.05f);
 
-        Debug.Log(aimDir);
         if (Math.Abs(aimDir.x) > 0.55) // Side attack
         {
             if (aimDir.y > 0.8) // SideUp attack

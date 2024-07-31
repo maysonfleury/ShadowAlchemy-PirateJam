@@ -116,6 +116,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SkeletonWarrior
       objectReference: {fileID: 0}
+    - target: {fileID: 4715086810438688670, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_TagString
+      value: Enemy
+      objectReference: {fileID: 0}
     - target: {fileID: 5096899863499173847, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: m_IsActive
       value: 0

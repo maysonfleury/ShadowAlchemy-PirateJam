@@ -26,9 +26,12 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
     [Header("Combat")]
     public Collider2D attackHitbox;
     public Transform rangedAttackOrigin;
+    public GameObject webAttackPrefab;
     public bool mouseAiming;
     public float knockbackForce = 25f;
     public float attackCooldown = 0.55f;
+    public float rangedAttackCooldown = 3f;
+    public float rangedAttackForce = 3f;
     public float attackRange = 1f;
     public float floorHeight = -0.55f;
     public float feetHeight = -1.4f;
@@ -39,6 +42,7 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
     [Header("Booleans")]
     public bool canMove = true;
     public bool canAttack = true;
+    public bool canWebAttack = true;
     public bool wallGrab;
     public bool wallJumped;
     public bool isSlowed;
@@ -167,7 +171,7 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
 
         if (Input.GetButtonDown("Fire2"))
         {
-            if (canAttack)
+            if (canWebAttack)
                 WebAttack();
         }
 
@@ -267,6 +271,7 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
     {
         canMove = true;
         canAttack = true;
+        canWebAttack = true;
         hasKilledSelf = false;
         wallJumped = false;
         wallGrab = false;
@@ -336,12 +341,17 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
     private void WebAttack()
     {
         Aim();
-        attackHitbox.enabled = true;
-        canAttack = false;
+        canWebAttack = false;
         attackParticle.Play();
-        Invoke(nameof(ResetAttack), attackCooldown);
-        Invoke(nameof(DisableHitbox), 0.05f);
+        Invoke(nameof(ResetRangedAttack), attackCooldown);
         animator.SetTrigger("jumpAttack");
+        GameObject web = Instantiate(webAttackPrefab, attackHitbox.transform.position, Quaternion.identity);
+        web.GetComponent<Rigidbody2D>().AddForce(aimDir * rangedAttackForce, ForceMode2D.Impulse);
+    }
+
+    private void ResetRangedAttack()
+    {
+        canWebAttack = true;
     }
 
     private void DisableHitbox()

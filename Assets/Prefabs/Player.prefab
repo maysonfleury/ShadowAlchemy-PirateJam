@@ -39471,9 +39471,12 @@ MonoBehaviour:
   ledgeHopStrength: 3
   attackHitbox: {fileID: 5141267672394503065}
   rangedAttackOrigin: {fileID: 1743958942503692985}
+  webAttackPrefab: {fileID: 1061797694201444075, guid: 23ed680dcf2391c4db71c91c00337199, type: 3}
   mouseAiming: 0
   knockbackForce: 25
   attackCooldown: 2
+  rangedAttackCooldown: 3
+  rangedAttackForce: 10
   attackRange: 1.6
   floorHeight: -0.55
   feetHeight: -1.4
@@ -39481,6 +39484,7 @@ MonoBehaviour:
   hitBoxSize: 1.4
   canMove: 1
   canAttack: 1
+  canWebAttack: 1
   wallGrab: 0
   wallJumped: 0
   isSlowed: 0

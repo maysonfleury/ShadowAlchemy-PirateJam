@@ -455,7 +455,7 @@ namespace Enemy
             isWaitingToFlip = false;
             currentStateDuration = 0;
 
-            Debug.Log($"Switching state to: {state}");
+            //Debug.Log($"Switching state to: {state}");
 
             switch (state)
             {
