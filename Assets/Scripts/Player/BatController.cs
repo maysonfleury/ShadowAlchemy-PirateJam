@@ -33,6 +33,7 @@ public class BatController : MonoBehaviour, IPlayerController, IEffectable, IMov
 
     [Space]
     [Header("Polish")]
+    public Animator animator;
     public ParticleSystem jumpParticle;
     public GameObject batModel;
     public float rotateTime = 0.1f;
@@ -171,6 +172,7 @@ public class BatController : MonoBehaviour, IPlayerController, IEffectable, IMov
     {
         //slideParticle.transform.parent.localScale = new Vector3(ParticleSide(), 1, 1);
         //ParticleSystem particle = wall ? wallJumpParticle : jumpParticle;
+        animator.SetTrigger("flap");
         sfxManager.Play("jump");
 
         canJump = false;

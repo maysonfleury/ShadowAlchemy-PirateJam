@@ -24,6 +24,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     public float wallJumpControl = 5f;
     public float ledgeHopStrength = 8.5f;
     public float dashSpeed = 50;
+    public float dashCooldown = 4f;
 
     [Space]
     [Header("Combat")]
@@ -44,15 +45,20 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     public bool wallJumped;
     public bool wallSlide;
     public bool isDashing;
+    public bool canDash;
     public bool isSlowed;
 
     [Space]
     [Header("Polish")]
     public Animator animator;
     public ParticleSystem dashParticle;
+    public ParticleSystem canDashParticle;
     public ParticleSystem jumpParticle;
     public ParticleSystem attackParticle;
+    public ParticleSystem hurtParticle;
     public GameObject shadeModel;
+    public Material emissiveMat;
+    private Material defaultMat;
     public float rotateTime = 0.08f;
     public int side = 1;
     //public ParticleSystem wallJumpParticle;
@@ -63,15 +69,15 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     private Vector2 aimDir;
     public float slowPercent;
     private bool groundTouch;
-    private bool hasDashed;
     private bool coyoteEnabled;
     private RippleEffect camRipple;
     private SFXManager sfxManager;
     private PlayerFormController playerFormController;
+    private Renderer meshRenderer;
     private float xAxis;
     private float fallSpeedYDampingChangeThreshold;
     private float wallJumpXDampingChangeThreshold;
-    public float wallJumpAmount;
+    private float wallJumpAmount;
 
     // Start is called before the first frame update
     void Start()
@@ -81,6 +87,8 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
         camRipple = FindObjectOfType<RippleEffect>();
         sfxManager = FindObjectOfType<SFXManager>();
         playerFormController = GetComponentInParent<PlayerFormController>();
+        meshRenderer = shadeModel.GetComponentInChildren<Renderer>();
+        defaultMat = meshRenderer.material;
         fallSpeedYDampingChangeThreshold = CameraManager.instance.fallSpeedYDampingThreshold;
         wallJumpXDampingChangeThreshold = CameraManager.instance.wallJumpXDampingThreshold;
     }
@@ -150,10 +158,10 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
 
         if (mouseAiming)
         {
-            if (Input.GetButtonDown("Fire2") && !hasDashed)
+            if (Input.GetButtonDown("Fire2") && canDash)
                 Dash(aimDir.x, aimDir.y);
         }
-        else if (Input.GetButtonDown("Fire2") && !hasDashed)
+        else if (Input.GetButtonDown("Fire2") && canDash)
         {
             if(xRaw != 0 || yRaw != 0)
                 Dash(xRaw, yRaw);
@@ -166,11 +174,17 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
             coyoteEnabled = false;
         }
 
+        if (coll.onGround && !animator.GetBool("isGrounded"))
+        {
+            animator.SetBool("isGrounded", true);
+        }
+
         if(!coll.onGround && groundTouch)
         {
             groundTouch = false;
             StartCoroutine(CoyoteTime(coyoteFrames));
             animator.SetBool("isRunning", false);
+            animator.SetBool("isGrounded", false);
         }
 
         //WallParticle(y);
@@ -231,7 +245,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
         wallJumped = false;
         wallSlide = false;
         isDashing = false;
-        hasDashed = false;
+        ResetDash();
         wallJumpAmount = 0f;
         isSlowed = false;
         slowPercent = 0f;
@@ -263,31 +277,23 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
             else
                 aimDir.x = Mathf.Clamp(Mathf.Abs(aimDir.x), 0f, attackRange) * Mathf.Sign(aimDir.x);
         }
-        else // Keyboard 4-directional aiming
+        else // Keyboard 8-directional aiming
         {
-            // Priotize up-down attacks in the air and on wall
             if (!coll.onGround || coll.onWall)
             {
-                if (yRaw != 0)
-                {
-                    if (yRaw > 0)
-                        aimDir = new Vector3(0, yRaw * attackRange, 0);
-                    else if (yRaw < 0)  // More forgiving hitbox for below player
-                        aimDir = new Vector3(0, yRaw * attackRange - 0.2f, 0);
-                }
+                if (yRaw < 0) // No diagonal down in air
+                    aimDir = new Vector2(0, yRaw * attackRange);
                 else if (xRaw != 0)
-                    aimDir = new Vector3(xRaw * attackRange, 0, 0);
-                else // Default to last left-right direction input
-                    aimDir = new Vector3(side * attackRange, 0, 0);
+                    aimDir = new Vector2(xRaw * attackRange, yRaw * attackRange);
+                else // Default to whichever side you're facing
+                    aimDir = new Vector2(side * attackRange, yRaw * attackRange);
             }
-            else // Prioritize right-left attacks on the ground
+            else
             {
-                if (xRaw != 0)
-                    aimDir = new Vector3(xRaw * attackRange, 0, 0);
-                else if (yRaw > 0)
-                    aimDir = new Vector3(0, yRaw * attackRange, 0);
-                else // Default to last left-right direction input
-                    aimDir = new Vector3(side * attackRange, 0, 0);
+                if (xRaw == 0 && yRaw == 0) // Default to whichever side you're facing
+                    aimDir = new Vector2(side * attackRange, yRaw * attackRange);
+                else
+                    aimDir = new Vector2(xRaw * attackRange, yRaw * attackRange);
             }
         }
 
@@ -304,6 +310,24 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
         attackParticle.Play();
         Invoke(nameof(ResetAttack), attackCooldown);
         Invoke(nameof(DisableHitbox), 0.05f);
+
+        Debug.Log(aimDir);
+        if (Math.Abs(aimDir.x) > 0.55) // Side attack
+        {
+            if (aimDir.y > 0.8) // SideUp attack
+                animator.SetTrigger("atkUpSide");
+            else if (aimDir.y < -0.55) // SideDown attack
+                animator.SetTrigger("atkDownSide");
+            else // Regular Side Attack
+                animator.SetTrigger("atkSide");
+        }
+        else    // Up/Down attack
+        {
+            if (aimDir.y > 0.8) // Up attack
+                animator.SetTrigger("atkUp");
+            else if (aimDir.y <= -1) // Down attack
+                animator.SetTrigger("atkDown");
+        }
     }
 
     private void ResetAttack()
@@ -343,7 +367,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
 
     void GroundTouch()
     {
-        hasDashed = false;
+        ResetDash();
         isDashing = false;
 
         jumpParticle.Play();
@@ -357,7 +381,9 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
         sfxManager.Play("dash");
         animator.SetTrigger("dash");
 
-        hasDashed = true;
+        canDash = false;
+        canDashParticle.Stop();
+        meshRenderer.material = defaultMat;
 
         rb.velocity = Vector2.zero;
         Vector2 dir = new Vector2(x, y);
@@ -392,7 +418,14 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     {
         yield return new WaitForSeconds(.75f);
         if (coll.onGround)
-            hasDashed = false;
+            ResetDash();
+    }
+
+    private void ResetDash()
+    {
+        canDash = true;
+        canDashParticle.Play();
+        if (meshRenderer.enabled) meshRenderer.material = emissiveMat;
     }
 
     private void WallJump()
@@ -439,7 +472,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
         //ParticleSystem particle = wall ? wallJumpParticle : jumpParticle;
         sfxManager.Play("jump");
         animator.SetTrigger("jump");
-        animator.SetBool("isGrounded", false);
+        //animator.SetBool("isGrounded", false);
 
         coyoteEnabled = false;
 
@@ -492,7 +525,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
         camRipple.waveSpeed = 3.75f;
         camRipple.Emit(Camera.main.WorldToViewportPoint(transform.position));
 
-        hasDashed = false;
+        ResetDash();
 
         float xVel;
         if (x == 0) xVel = rb.velocity.x;
@@ -578,6 +611,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
 
     public void OnTakeDamage(Vector2 damageOrigin)
     {
+        hurtParticle.Play();
         Vector2 knockbackDir = new Vector2(transform.position.x, transform.position.y) - damageOrigin;
         Knockback(knockbackDir.x * knockbackForce, knockbackDir.y * knockbackForce);
     }

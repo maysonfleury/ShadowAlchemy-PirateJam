@@ -47,8 +47,10 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
 
     [Space]
     [Header("Polish")]
+    public Animator animator;
     public ParticleSystem jumpParticle;
     public ParticleSystem attackParticle;
+    public ParticleSystem hurtParticle;
     //public ParticleSystem wallJumpParticle;
     //public ParticleSystem slideParticle;
     public GameObject ratModel;
@@ -169,6 +171,13 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
         {
             groundTouch = false;
             StartCoroutine(CoyoteTime(coyoteFrames));
+            animator.SetBool("isRunning", false);
+            animator.SetBool("isGrounded", false);
+        }
+
+        if (coll.onGround && !animator.GetBool("isGrounded"))
+        {
+            animator.SetBool("isGrounded", true);
         }
 
         // Dampen the camera's YDamping depending on fall velocity/time
@@ -194,6 +203,7 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
         {
             if(!DOTween.IsTweening(ratModel.transform))
                 ratModel.transform.DOLocalRotate(Vector3.zero, rotateTime).SetEase(Ease.OutExpo);
+            animator.SetBool("isRunning", false);
         }
         else if(xRaw > 0)
         {
@@ -201,6 +211,7 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
             ratModel.transform.localScale = new Vector3(0.9f, 1.05f, 1);
             if (!DOTween.IsTweening(ratModel.transform))
                 ratModel.transform.DOLocalRotate(new Vector3(0, 0, -3), rotateTime);
+            if (coll.onGround) animator.SetBool("isRunning", true);
         }
         else if (xRaw < 0)
         {
@@ -208,6 +219,7 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
             ratModel.transform.localScale = new Vector3(-0.9f, 1.05f, 1);
             if (!DOTween.IsTweening(ratModel.transform))
                 ratModel.transform.DOLocalRotate(new Vector3(0, 0, 3), rotateTime);
+            if (coll.onGround) animator.SetBool("isRunning", true);
         }
     }
 
@@ -255,31 +267,23 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
             else
                 aimDir.x = Mathf.Clamp(Mathf.Abs(aimDir.x), 0f, attackRange) * Mathf.Sign(aimDir.x);
         }
-        else // Keyboard 4-directional aiming
+        else // Keyboard 8-directional aiming
         {
-            // Priotize up-down attacks in the air and on wall
             if (!coll.onGround || coll.onWall)
             {
-                if (yRaw != 0)
-                {
-                    if (yRaw > 0)
-                        aimDir = new Vector3(0, yRaw * attackRange - 0.3f, 0);
-                    else if (yRaw < 0)  // More forgiving hitbox for below player
-                        aimDir = new Vector3(0, yRaw * attackRange + 0.3f, 0);
-                }
+                if (yRaw < 0) // No diagonal down in air
+                    aimDir = new Vector2(0, yRaw * attackRange);
                 else if (xRaw != 0)
-                    aimDir = new Vector3(xRaw * attackRange, 0, 0);
-                else // Default to last left-right direction input
-                    aimDir = new Vector3(side * attackRange, 0, 0);
+                    aimDir = new Vector2(xRaw * attackRange, yRaw * attackRange);
+                else // Default to whichever side you're facing
+                    aimDir = new Vector2(side * attackRange, yRaw * attackRange);
             }
-            else // Prioritize right-left attacks on the ground
+            else
             {
-                if (xRaw != 0)
-                    aimDir = new Vector3(xRaw * attackRange, 0, 0);
-                else if (yRaw > 0)
-                    aimDir = new Vector3(0, yRaw * attackRange, 0);
-                else // Default to last left-right direction input
-                    aimDir = new Vector3(side * attackRange, 0, 0);
+                if (xRaw == 0 && yRaw == 0) // Default to whichever side you're facing
+                    aimDir = new Vector2(side * attackRange, yRaw * attackRange);
+                else
+                    aimDir = new Vector2(xRaw * attackRange, yRaw * attackRange);
             }
         }
 
@@ -296,6 +300,11 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
         attackParticle.Play();
         Invoke(nameof(ResetAttack), attackCooldown);
         Invoke(nameof(DisableHitbox), 0.05f);
+
+        if (Random.value < 0.5f)
+            animator.SetTrigger("attack");
+        else
+            animator.SetTrigger("clawAttack");
     }
 
     private void ResetAttack()
@@ -384,6 +393,7 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
     {
         //slideParticle.transform.parent.localScale = new Vector3(ParticleSide(), 1, 1);
         //ParticleSystem particle = wall ? wallJumpParticle : jumpParticle;
+        animator.SetTrigger("jump");
         sfxManager.Play("jump");
 
         coyoteEnabled = false;
@@ -399,6 +409,7 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
     {
         //slideParticle.transform.parent.localScale = new Vector3(ParticleSide(), 1, 1);
         //ParticleSystem particle = wall ? wallJumpParticle : jumpParticle;
+        animator.SetTrigger("doubleJump");
         sfxManager.Play("jump");
 
         doubleJumped = true;
@@ -545,6 +556,8 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
 
     public void OnTakeDamage(Vector2 damageOrigin)
     {
+        animator.SetTrigger("hit");
+        hurtParticle.Play();
         Vector2 knockbackDir = new Vector2(transform.position.x, transform.position.y) - damageOrigin;
         Knockback(knockbackDir.x * knockbackForce, knockbackDir.y * knockbackForce);
     }

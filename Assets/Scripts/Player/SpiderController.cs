@@ -46,9 +46,11 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
 
     [Space]
     [Header("Polish")]
+    public Animator animator;
     public ParticleSystem dashParticle;
     public ParticleSystem jumpParticle;
     public ParticleSystem attackParticle;
+    public ParticleSystem hurtParticle;
     public GameObject spiderModel;
     public int side = 1;
     //public ParticleSystem wallJumpParticle;
@@ -159,10 +161,14 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
 
         if (Input.GetButtonDown("Fire1"))
         {
-            //anim.SetTrigger("attack");
-
             if (canAttack)
-                Attack();
+                JumpAttack();
+        }
+
+        if (Input.GetButtonDown("Fire2"))
+        {
+            if (canAttack)
+                WebAttack();
         }
 
         if (Input.GetButtonDown("Fire3") && !hasKilledSelf)
@@ -182,6 +188,8 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
         {
             groundTouch = false;
             StartCoroutine(CoyoteTime(coyoteFrames));
+            animator.SetBool("isRunning", false);
+            animator.SetBool("isGrounded", false);
         }
 
         //WallParticle(y);
@@ -204,15 +212,48 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
             CameraManager.instance.LerpXDamping(false);
         }
 
-        if(xRaw > 0)
+        if (xRaw == 0 || coll.onWall)
+        {
+            animator.SetBool("isRunning", false);
+        }
+        else if(xRaw > 0)
         {
             side = 1;
             spiderModel.transform.localScale = new Vector3(2, 2, 1);
+            animator.SetBool("isRunning", true);
         }
         else if (xRaw < 0)
         {
             side = -1;
             spiderModel.transform.localScale = new Vector3(-2, 2, 1);
+            animator.SetBool("isRunning", true);
+        }
+
+        if (coll.onWall && !coll.onGround)
+        {
+            if (yRaw != 0)
+            {
+                animator.SetBool("isCrawling", true);
+                animator.SetBool("isCrawlingIdle", false);
+            }
+            else
+                animator.SetBool("isCrawlingIdle", true);
+
+            if (coll.onLeftWall)
+            {
+                side = 1;
+                spiderModel.transform.localScale = new Vector3(2, 2, 1);
+            }
+            else if (coll.onRightWall)
+            {
+                side = -1;
+                spiderModel.transform.localScale = new Vector3(-2, 2, 1);
+            }
+        }
+        else if (coll.onGround)
+        {
+            animator.SetBool("isCrawling", false);
+            animator.SetBool("isCrawlingIdle", false);
         }
     }
 
@@ -248,45 +289,18 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
             Vector3 cursorPos = cursorPosCam + (Camera.main.transform.forward * 15.0f);
             aimDir = (cursorPos - gameObject.transform.position).normalized * 10f;
 
-            // All directions allowed in the web and on wall (prio on up/down)
-            if (coll.onWall || isInWeb)
-            {
-                aimDir.y = Mathf.Clamp(aimDir.y, feetHeight, attackRange);
-                if (Mathf.Abs(aimDir.y) < headHeight)
-                    aimDir.x = Mathf.Clamp(Mathf.Abs(aimDir.x), hitBoxSize, attackRange) * Mathf.Sign(aimDir.x);
-                else
-                    aimDir.x = Mathf.Clamp(Mathf.Abs(aimDir.x), 0f, attackRange) * Mathf.Sign(aimDir.x);
-            }
-            else // Only allow left-right on ground
-            {
+            aimDir.y = Mathf.Clamp(aimDir.y, feetHeight, attackRange);
+            if (Mathf.Abs(aimDir.y) < headHeight)
                 aimDir.x = Mathf.Clamp(Mathf.Abs(aimDir.x), hitBoxSize, attackRange) * Mathf.Sign(aimDir.x);
-                aimDir.y = 0;
-            }
+            else
+                aimDir.x = Mathf.Clamp(Mathf.Abs(aimDir.x), 0f, attackRange) * Mathf.Sign(aimDir.x);
         }
-        else // Keyboard 4-directional aiming
+        else // Keyboard 8-directional aiming
         {
-            // All directions allowed in the web and on wall (prio on up/down)
-            if (coll.onWall || isInWeb)
-            {
-                if (yRaw != 0)
-                {
-                    if (yRaw > 0)
-                        aimDir = new Vector2(0, yRaw * attackRange);
-                    else if (yRaw < 0)  // More forgiving hitbox for below player
-                        aimDir = new Vector2(0, yRaw * attackRange - 0.2f);
-                }
-                else if (xRaw != 0)
-                    aimDir = new Vector2(xRaw * attackRange, 0);
-                else // Default to last left-right direction input
-                    aimDir = new Vector2(side * attackRange, 0);
-            }
-            else // Only allow right-left attacks on the ground
-            {
-                if (xRaw != 0)
-                    aimDir = new Vector2(xRaw * attackRange, 0);
-                else // Default to last left-right direction input
-                    aimDir = new Vector2(side * attackRange, 0);
-            }
+            if (xRaw == 0 && yRaw == 0) // Default to whichever side you're facing
+                aimDir = new Vector3(side * attackRange, yRaw * attackRange, 0);
+            else
+                aimDir = new Vector3(xRaw * attackRange, yRaw * attackRange, 0);
         }
 
         // Okay now aim
@@ -294,7 +308,32 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
         attackHitbox.GetComponent<PlayerAttack>().forward = Mathf.Sign(aimDir.x);
     }
 
-    private void Attack()
+    private void JumpAttack()
+    {
+        playerFormController.DisableMovement(this, 0.5f);
+
+        animator.SetTrigger("jumpAttack");
+        sfxManager.Play("jump");
+
+        rb.velocity = new Vector2(0, -rb.velocity.y);
+        rb.velocity += new Vector2(side, 1f) * jumpForce;
+
+        attackHitbox.enabled = true;
+        canAttack = false;
+
+        attackParticle.Play();
+        jumpParticle.Play();
+
+        Invoke(nameof(ResetAttack), attackCooldown);
+        Invoke(nameof(DisableHitbox), 0.5f);
+    }
+
+    private void ResetAttack()
+    {
+        canAttack = true;
+    }
+
+    private void WebAttack()
     {
         Aim();
         attackHitbox.enabled = true;
@@ -302,11 +341,7 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
         attackParticle.Play();
         Invoke(nameof(ResetAttack), attackCooldown);
         Invoke(nameof(DisableHitbox), 0.05f);
-    }
-
-    private void ResetAttack()
-    {
-        canAttack = true;
+        animator.SetTrigger("jumpAttack");
     }
 
     private void DisableHitbox()
@@ -341,9 +376,8 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
 
     void GroundTouch()
     {
-        //side = anim.sr.flipX ? -1 : 1;
-
         jumpParticle.Play();
+        animator.SetBool("isGrounded", true);
     }
 
     private void WallJump()
@@ -493,6 +527,8 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
 
     public void OnTakeDamage(Vector2 damageOrigin)
     {
+        animator.SetTrigger("hit");
+        hurtParticle.Play();
         Vector2 knockbackDir = new Vector2(transform.position.x, transform.position.y) - damageOrigin;
         Knockback(knockbackDir.x * knockbackForce, knockbackDir.y * knockbackForce);
     }
@@ -504,6 +540,7 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
         slowPercent = (100f - 10) * 0.01f;
         GetComponent<GravityController>().enabled = false;
         isInWeb = true;
+        animator.SetBool("isCrawling", true);
     }
 
     public void OnWebExit()
@@ -512,6 +549,7 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
         slowPercent = 0f;
         GetComponent<GravityController>().enabled = true;
         isInWeb = false;
+        animator.SetBool("isCrawling", false);
     }
 
     public void OnHitSpikes(Vector2 launchTarget, float launchStrength)

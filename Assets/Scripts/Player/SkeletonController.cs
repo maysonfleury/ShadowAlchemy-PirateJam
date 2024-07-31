@@ -44,6 +44,7 @@ public class SkeletonController : MonoBehaviour, IPlayerController, IEffectable,
     public ParticleSystem knockbackParticle;
     public ParticleSystem jumpParticle;
     public ParticleSystem attackParticle;
+    public ParticleSystem hurtParticle;
     public GameObject skeletonModel;
     public float rotateTime = 0.08f;
     public int side = 1;
@@ -420,6 +421,7 @@ public class SkeletonController : MonoBehaviour, IPlayerController, IEffectable,
         Knockback(-aimDir.x, -aimDir.y);
         TimeManager.Instance.HitStopFrames(stunLength);
         sfxManager.Play("hit");
+        hurtParticle.Play();
     }
 
     public void OnTakeDamage(Vector2 damageOrigin)
