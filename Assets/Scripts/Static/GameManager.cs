@@ -25,6 +25,7 @@ public class GameManager : PersistentSingleton<GameManager>
     {
         Application.targetFrameRate = 60;
         //ChangeState(GameState.StartState);
+        LoadMainMenu();
     }
 
     public void ChangeState(GameState newState) {
@@ -79,5 +80,25 @@ public class GameManager : PersistentSingleton<GameManager>
     public void ChangeScene(String scene)
     {
         SceneManager.LoadScene(scene);
+    }
+
+    public void LoadMainMenu()
+    {
+        SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Additive);
+    }
+
+    public void LoadGame(bool MouseAim)
+    {
+        ChangeState(GameState.GameState);
+        SceneManager.UnloadSceneAsync("MainMenu");
+        if (MouseAim)
+        {
+            SceneManager.LoadSceneAsync("PlayerMouseAim", LoadSceneMode.Additive);
+        }
+        else
+        {
+            SceneManager.LoadSceneAsync("PlayerKeyAim", LoadSceneMode.Additive);
+        }
+        SceneManager.LoadSceneAsync("TutorialLayer", LoadSceneMode.Additive);
     }
 }
