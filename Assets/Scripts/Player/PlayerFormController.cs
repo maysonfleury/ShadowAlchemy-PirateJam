@@ -5,6 +5,7 @@ using Cinemachine;
 using DG.Tweening;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class PlayerFormController : MonoBehaviour
 {
@@ -117,9 +118,11 @@ public class PlayerFormController : MonoBehaviour
                 if (currentTransform != shadeController.transform)
                 {
                     shadeController.GetComponent<Rigidbody2D>().velocity += currentTransform.GetComponent<Rigidbody2D>().velocity;
+                    shadeController.ResetForm();
                     currentTransform.gameObject.SetActive(false);
                     currentTransform = shadeController.transform;
                 }
+                sfxManager.Play("possess");
                 currentHP = 2;
             break;
 
@@ -130,6 +133,7 @@ public class PlayerFormController : MonoBehaviour
                 currentForm = PlayerForm.Bat;
                 if (currentTransform != batController.transform)
                 {
+                    batController.ResetForm();
                     currentTransform.gameObject.SetActive(false);
                     currentTransform = batController.transform;
                 }
@@ -143,6 +147,7 @@ public class PlayerFormController : MonoBehaviour
                 currentForm = PlayerForm.Rat;
                 if (currentTransform != ratController.transform)
                 {
+                    ratController.ResetForm();
                     currentTransform.gameObject.SetActive(false);
                     currentTransform = ratController.transform;
                 }
@@ -156,6 +161,7 @@ public class PlayerFormController : MonoBehaviour
                 currentForm = PlayerForm.Spider;
                 if (currentTransform != spiderController.transform)
                 {
+                    spiderController.ResetForm();
                     currentTransform.gameObject.SetActive(false);
                     currentTransform = spiderController.transform;
                 }
@@ -169,6 +175,7 @@ public class PlayerFormController : MonoBehaviour
                 currentForm = PlayerForm.SkeletonWarrior;
                 if (currentTransform != skeletonWarriorController.transform)
                 {
+                    skeletonArcherController.ResetForm();
                     currentTransform.gameObject.SetActive(false);
                     currentTransform = skeletonWarriorController.transform;
                 }
@@ -182,6 +189,7 @@ public class PlayerFormController : MonoBehaviour
                 currentForm = PlayerForm.SkeletonArcher;
                 if (currentTransform != skeletonArcherController.transform)
                 {
+                    skeletonArcherController.ResetForm();
                     currentTransform.gameObject.SetActive(false);
                     currentTransform = skeletonArcherController.transform;
                 }
@@ -213,7 +221,7 @@ public class PlayerFormController : MonoBehaviour
         }
         else if (currentForm != PlayerForm.Shade && currentHP == 1)
         {
-            ChangeForm(PlayerForm.Shade, currentTransform.position);
+            ReturnToShade();
         }
         else if (currentHP > 1)
         {
@@ -288,6 +296,27 @@ public class PlayerFormController : MonoBehaviour
             case PossessionType.None:
             break;
         }
+    }
+
+    public void ReturnToShade()
+    {
+        ChangeForm(PlayerForm.Shade, currentTransform.position);
+        possessParticle.Play();
+        StartCoroutine(ReturnToShadeRoutine());
+    }
+
+    IEnumerator ReturnToShadeRoutine()
+    {
+        if (possessParticle.isPlaying)
+        {
+            while (possessParticle.isPlaying)
+            {
+                Vector3 targetPos = new Vector3(currentTransform.position.x, currentTransform.position.y, -0.65f);
+                possessParticle.transform.position = targetPos;
+                yield return new WaitForEndOfFrame();
+            }
+        }
+        yield return null;
     }
 
     public void giveInvulnerability(float time)

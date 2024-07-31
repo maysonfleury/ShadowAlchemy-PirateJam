@@ -16,7 +16,7 @@ public class PlayerPossess : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKey(KeyCode.E))
+        if (Input.GetButtonDown("Fire3"))
         {
             if (possessionTargets.Count > 0 && controller.canMove)
             {

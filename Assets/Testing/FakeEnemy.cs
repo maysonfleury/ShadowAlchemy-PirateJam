@@ -24,6 +24,7 @@ public class FakeEnemy : MonoBehaviour, IEffectable, IMovable, IPossessable
         {
             GetComponent<Rigidbody2D>().constraints = RigidbodyConstraints2D.FreezeAll; // Stop the corpse from flying away
             GetComponentInChildren<MeshRenderer>().enabled = false;
+            GetComponent<Collider2D>().isTrigger = true;
             hurtPlayerOnTouch = false;
             SFXManager.Instance.Play("kill");
             deathParticles.Play();

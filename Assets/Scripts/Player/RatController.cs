@@ -68,6 +68,7 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
     private float fallSpeedYDampingChangeThreshold;
     private float wallJumpXDampingChangeThreshold;
     public float wallJumpAmount;
+    private bool hasKilledSelf;
 
     // Start is called before the first frame update
     void Start()
@@ -79,6 +80,7 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
         playerFormController = GetComponentInParent<PlayerFormController>();
         fallSpeedYDampingChangeThreshold = CameraManager.instance.fallSpeedYDampingThreshold;
         wallJumpXDampingChangeThreshold = CameraManager.instance.wallJumpXDampingThreshold;
+        hasKilledSelf = false;
     }
 
     // Update is called once per frame
@@ -144,6 +146,12 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
                 Attack();
         }
 
+        if (Input.GetButtonDown("Fire3") && !hasKilledSelf)
+        {
+            hasKilledSelf = true;
+            playerFormController.ReturnToShade();
+        }
+
         //if (Input.GetButtonDown("Fire3") && !hasDashed)
         //{
         //    if(xRaw != 0 || yRaw != 0)
@@ -207,6 +215,19 @@ public class RatController : MonoBehaviour, IPlayerController, IEffectable, IMov
     {
         if (!coll.onGround)
             rb.velocity = new Vector3(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -maxFallSpeed, maxFallSpeed * 5f));
+    }
+
+    public void ResetForm()
+    {
+        canMove = true;
+        canAttack = true;
+        hasKilledSelf = false;
+        wallJumped = false;
+        doubleJumped = false;
+        wallSlide = false;
+        wallJumpAmount = 0f;
+        isSlowed = false;
+        slowPercent = 0f;
     }
 
     //******************************

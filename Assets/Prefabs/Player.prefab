@@ -24806,7 +24806,6 @@ MonoBehaviour:
   spiderModel: {fileID: 7633755646819782167}
   side: 1
   slowPercent: 0
-  wallJumpAmount: 0
 --- !u!114 &4527395138032400426
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -43280,7 +43279,7 @@ ParticleSystem:
       m_Bits: 4294967295
     influenceList: []
   ClampVelocityModule:
-    enabled: 0
+    enabled: 1
     x:
       serializedVersion: 2
       minMaxState: 0
@@ -43497,7 +43496,7 @@ ParticleSystem:
     inWorldSpace: 0
     multiplyDragByParticleSize: 1
     multiplyDragByParticleVelocity: 1
-    dampen: 0
+    dampen: 0.1
     drag:
       serializedVersion: 2
       minMaxState: 0
@@ -70286,7 +70285,7 @@ MonoBehaviour:
   wallSlide: 0
   isDashing: 0
   isSlowed: 0
-  animator: {fileID: 0}
+  animator: {fileID: 764941884379621588}
   dashParticle: {fileID: 7017712082538148865}
   jumpParticle: {fileID: 8729170344128789795}
   attackParticle: {fileID: 6466702507890407294}
@@ -80634,9 +80633,13 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2863339966235592913}
     m_Modifications:
+    - target: {fileID: 756813382429922718, guid: 6ccdfcf598902a24793a46b790010b95, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: ef0aedb72133622438ae81355b034932, type: 2}
     - target: {fileID: 6281186376363988318, guid: 6ccdfcf598902a24793a46b790010b95, type: 3}
       propertyPath: m_Name
-      value: Sk_Rat (1)
+      value: Sk_Rat
       objectReference: {fileID: 0}
     - target: {fileID: 6656479774833283044, guid: 6ccdfcf598902a24793a46b790010b95, type: 3}
       propertyPath: m_LocalPosition.x
@@ -80738,7 +80741,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 3e2c60e3eecc9904e807127a386e2d5a, type: 3}
       propertyPath: m_Name
-      value: Sk_Bat (1)
+      value: Sk_Bat
       objectReference: {fileID: 0}
     - target: {fileID: 5866666021909216657, guid: 3e2c60e3eecc9904e807127a386e2d5a, type: 3}
       propertyPath: m_Controller
@@ -80886,7 +80889,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: b8a2e75d9b7182e41aea51ab1f74f43e, type: 3}
       propertyPath: m_Name
-      value: Sk_Spider (1)
+      value: Sk_Spider
       objectReference: {fileID: 0}
     - target: {fileID: 5866666021909216657, guid: b8a2e75d9b7182e41aea51ab1f74f43e, type: 3}
       propertyPath: m_Controller
@@ -81038,7 +81041,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 610795f6683636b49937f6d229660bb7, type: 3}
       propertyPath: m_Name
-      value: Sk_Shade (1)
+      value: Sk_Shade
       objectReference: {fileID: 0}
     - target: {fileID: 5866666021909216657, guid: 610795f6683636b49937f6d229660bb7, type: 3}
       propertyPath: m_Controller
@@ -81052,6 +81055,11 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 478756750772302121}
   m_SourcePrefab: {fileID: 100100000, guid: 610795f6683636b49937f6d229660bb7, type: 3}
+--- !u!95 &764941884379621588 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: 610795f6683636b49937f6d229660bb7, type: 3}
+  m_PrefabInstance: {fileID: 6626777740693689669}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1614941617491033336 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5593022028875524541, guid: 610795f6683636b49937f6d229660bb7, type: 3}

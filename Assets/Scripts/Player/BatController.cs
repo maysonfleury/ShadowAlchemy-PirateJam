@@ -45,6 +45,7 @@ public class BatController : MonoBehaviour, IPlayerController, IEffectable, IMov
     private float xAxis;
     private float fallSpeedYDampingChangeThreshold;
     private float wallJumpXDampingChangeThreshold;
+    private bool hasKilledSelf = false;
 
     // Start is called before the first frame update
     void Start()
@@ -55,6 +56,7 @@ public class BatController : MonoBehaviour, IPlayerController, IEffectable, IMov
         playerFormController = GetComponentInParent<PlayerFormController>();
         fallSpeedYDampingChangeThreshold = CameraManager.instance.fallSpeedYDampingThreshold * 0.5f;
         wallJumpXDampingChangeThreshold = CameraManager.instance.wallJumpXDampingThreshold;
+        hasKilledSelf = false;
     }
 
     // Update is called once per frame
@@ -93,6 +95,12 @@ public class BatController : MonoBehaviour, IPlayerController, IEffectable, IMov
             }
         }
 
+        if (Input.GetButtonDown("Fire3") && !hasKilledSelf)
+        {
+            hasKilledSelf = true;
+            playerFormController.ReturnToShade();
+        }
+
         // Dampen the camera's YDamping depending on fall velocity/time
         if (rb.velocity.y < fallSpeedYDampingChangeThreshold && !CameraManager.instance.IsLerpingYDamping && !CameraManager.instance.LerpedFromPlayerFalling)
             CameraManager.instance.LerpYDamping(true);
@@ -128,6 +136,15 @@ public class BatController : MonoBehaviour, IPlayerController, IEffectable, IMov
     {
         if (!coll.onGround)
             rb.velocity = new Vector3(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -maxFallSpeed, maxFallSpeed * 5f));
+    }
+
+    public void ResetForm()
+    {
+        canMove = true;
+        canJump = true;
+        isSlowed = false;
+        hasKilledSelf = false;
+        slowPercent = 0f;
     }
 
     //*****************************

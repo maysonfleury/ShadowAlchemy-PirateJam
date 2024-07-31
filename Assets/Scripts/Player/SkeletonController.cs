@@ -61,6 +61,7 @@ public class SkeletonController : MonoBehaviour, IPlayerController, IEffectable,
     private PlayerFormController playerFormController;
     private float xAxis;
     private float fallSpeedYDampingChangeThreshold;
+    private bool hasKilledSelf;
 
     // Start is called before the first frame update
     void Start()
@@ -71,6 +72,7 @@ public class SkeletonController : MonoBehaviour, IPlayerController, IEffectable,
         sfxManager = FindObjectOfType<SFXManager>();
         playerFormController = GetComponentInParent<PlayerFormController>();
         fallSpeedYDampingChangeThreshold = CameraManager.instance.fallSpeedYDampingThreshold;
+        hasKilledSelf = false;
     }
 
     // Update is called once per frame
@@ -97,7 +99,6 @@ public class SkeletonController : MonoBehaviour, IPlayerController, IEffectable,
             GetComponent<GravityController>().enabled = true;
         }
 
-
         if (!coll.onGround && !coll.onWall && coll.onLedge)
         {
             Debug.Log("Ledge Hop!");
@@ -121,6 +122,12 @@ public class SkeletonController : MonoBehaviour, IPlayerController, IEffectable,
 
             if (canAttack)
                 Attack();
+        }
+
+        if (Input.GetButtonDown("Fire3") && !hasKilledSelf)
+        {
+            hasKilledSelf = true;
+            playerFormController.ReturnToShade();
         }
 
         if (coll.onGround && !groundTouch)
@@ -173,6 +180,15 @@ public class SkeletonController : MonoBehaviour, IPlayerController, IEffectable,
     {
         if (!coll.onGround)
             rb.velocity = new Vector3(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -maxFallSpeed, maxFallSpeed * 5f));
+    }
+
+    public void ResetForm()
+    {
+        canMove = true;
+        canAttack = true;
+        hasKilledSelf = false;
+        isSlowed = false;
+        slowPercent = 0f;
     }
 
     //******************************

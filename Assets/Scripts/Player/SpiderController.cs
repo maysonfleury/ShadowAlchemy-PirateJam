@@ -66,7 +66,8 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
     private float xAxis;
     private float fallSpeedYDampingChangeThreshold;
     private float wallJumpXDampingChangeThreshold;
-    public float wallJumpAmount;
+    private float wallJumpAmount;
+    private bool hasKilledSelf;
 
     // Start is called before the first frame update
     void Start()
@@ -78,6 +79,7 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
         playerFormController = GetComponentInParent<PlayerFormController>();
         fallSpeedYDampingChangeThreshold = CameraManager.instance.fallSpeedYDampingThreshold;
         wallJumpXDampingChangeThreshold = CameraManager.instance.wallJumpXDampingThreshold;
+        hasKilledSelf = false;
     }
 
     // Update is called once per frame
@@ -163,11 +165,11 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
                 Attack();
         }
 
-        //if (Input.GetButtonDown("Fire3") && !hasDashed)
-        //{
-        //    if(xRaw != 0 || yRaw != 0)
-        //        Dash(xRaw, yRaw);
-        //}
+        if (Input.GetButtonDown("Fire3") && !hasKilledSelf)
+        {
+            hasKilledSelf = true;
+            playerFormController.ReturnToShade();
+        }
 
         if (coll.onGround && !groundTouch)
         {
@@ -218,6 +220,19 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
     {
         if (!coll.onGround)
             rb.velocity = new Vector3(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -maxFallSpeed, maxFallSpeed * 5f));
+    }
+
+    public void ResetForm()
+    {
+        canMove = true;
+        canAttack = true;
+        hasKilledSelf = false;
+        wallJumped = false;
+        wallGrab = false;
+        wallJumpAmount = 0f;
+        isSlowed = false;
+        isInWeb = false;
+        slowPercent = 0f;
     }
 
     //******************************
@@ -320,7 +335,7 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
 
         if (isSlowed)
         {
-            rb.velocity = new Vector2(rb.velocity.x * slowPercent, rb.velocity.y * slowPercent);
+            rb.velocity = new Vector2(rb.velocity.x * slowPercent, rb.velocity.y * (slowPercent / 2f));
         }
     }
 
@@ -484,9 +499,9 @@ public class SpiderController : MonoBehaviour, IPlayerController, IEffectable, I
 
     public void OnWebEnter(float percentage)
     {
-        // Flat 15% slow for spiders in webs
+        // Flat 10% slow for spiders in webs
         isSlowed = true;
-        slowPercent = (100f - 15) * 0.01f;
+        slowPercent = (100f - 10) * 0.01f;
         GetComponent<GravityController>().enabled = false;
         isInWeb = true;
     }

@@ -132,8 +132,6 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
 
         if (Input.GetButtonDown("Jump"))
         {
-            //anim.SetTrigger("jump");
-
             if (coll.onGround || coyoteEnabled)
                 Jump(Vector2.up, false);
             else if (coll.onWall && !coll.onGround && !isSlowed)
@@ -155,7 +153,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
             if (Input.GetButtonDown("Fire2") && !hasDashed)
                 Dash(aimDir.x, aimDir.y);
         }
-        else if (Input.GetButtonDown("Fire3") && !hasDashed)
+        else if (Input.GetButtonDown("Fire2") && !hasDashed)
         {
             if(xRaw != 0 || yRaw != 0)
                 Dash(xRaw, yRaw);
@@ -172,6 +170,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
         {
             groundTouch = false;
             StartCoroutine(CoyoteTime(coyoteFrames));
+            animator.SetBool("isRunning", false);
         }
 
         //WallParticle(y);
@@ -199,6 +198,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
         {
             if(!DOTween.IsTweening(shadeModel.transform))
                 shadeModel.transform.DOLocalRotate(Vector3.zero, rotateTime).SetEase(Ease.OutExpo);
+            animator.SetBool("isRunning", false);
         }
         else if(xRaw > 0)
         {
@@ -206,6 +206,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
             shadeModel.transform.localScale = new Vector3(side, 1, 1);
             if (!DOTween.IsTweening(shadeModel.transform))
                 shadeModel.transform.DOLocalRotate(new Vector3(0, 0, -7), rotateTime);
+            if (coll.onGround) animator.SetBool("isRunning", true);
         }
         else if (xRaw < 0)
         {
@@ -213,6 +214,7 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
             shadeModel.transform.localScale = new Vector3(side, 1, 1);
             if (!DOTween.IsTweening(shadeModel.transform))
                 shadeModel.transform.DOLocalRotate(new Vector3(0, 0, 7), rotateTime);
+            if (coll.onGround) animator.SetBool("isRunning", true);
         }
     }
 
@@ -220,6 +222,19 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
     {
         if (!coll.onGround)
             rb.velocity = new Vector3(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -maxFallSpeed, maxFallSpeed * 5f));
+    }
+
+    public void ResetForm()
+    {
+        canMove = true;
+        canAttack = true;
+        wallJumped = false;
+        wallSlide = false;
+        isDashing = false;
+        hasDashed = false;
+        wallJumpAmount = 0f;
+        isSlowed = false;
+        slowPercent = 0f;
     }
 
 
@@ -331,18 +346,16 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
         hasDashed = false;
         isDashing = false;
 
-        //side = anim.sr.flipX ? -1 : 1;
-
         jumpParticle.Play();
+        animator.SetBool("isGrounded", true);
     }
 
     private void Dash(float x, float y)
     {
-        //anim.SetTrigger("dash");
-
         camRipple.waveSpeed = 3f;
         camRipple.Emit(Camera.main.WorldToViewportPoint(transform.position));
         sfxManager.Play("dash");
+        animator.SetTrigger("dash");
 
         hasDashed = true;
 
@@ -384,11 +397,11 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
 
     private void WallJump()
     {
-        //if ((side == 1 && coll.onRightWall) || side == -1 && !coll.onRightWall)
-        //{
-        //    side *= -1;
-        //    //anim.Flip(side);
-        //}
+        if ((side == 1 && coll.onRightWall) || side == -1 && !coll.onRightWall)
+        {
+            side *= -1;
+            shadeModel.transform.localScale = new Vector3(side, 1, 1);
+        }
 
         playerFormController.DisableMovement(this, 0.1f);
 
@@ -402,9 +415,6 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
 
     private void WallSlide()
     {
-        if(coll.wallSide != side)
-         //anim.Flip(side * -1);
-
         if (!canMove)
             return;
 
@@ -428,6 +438,8 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
         //slideParticle.transform.parent.localScale = new Vector3(ParticleSide(), 1, 1);
         //ParticleSystem particle = wall ? wallJumpParticle : jumpParticle;
         sfxManager.Play("jump");
+        animator.SetTrigger("jump");
+        animator.SetBool("isGrounded", false);
 
         coyoteEnabled = false;
 
