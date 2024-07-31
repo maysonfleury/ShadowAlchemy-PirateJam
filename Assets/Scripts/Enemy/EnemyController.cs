@@ -737,6 +737,11 @@ namespace Enemy
         {
             //Debug.Log("Enemy Hit");
             CurrentHealth -= damageAmount;
+            if(EnemyState == EnemyState.Sleeping
+                || EnemyState == EnemyState.Patrolling)
+            {
+                ChangeState(EnemyState.Sweeping);
+            }
         }
 
         public void HealHealth(float healAmount)
