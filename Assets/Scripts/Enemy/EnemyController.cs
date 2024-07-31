@@ -697,7 +697,7 @@ namespace Enemy
 
         private void OnAttackComplete()
         {
-            Debug.Log("Attack Completed");
+            //Debug.Log("Attack Completed");
             DisableAttackBox();
             AttackParticles.Play();
         }
@@ -735,7 +735,7 @@ namespace Enemy
 
         public void DamageHealth(int damageAmount)
         {
-            Debug.Log("Enemy Hit");
+            //Debug.Log("Enemy Hit");
             CurrentHealth -= damageAmount;
         }
 
@@ -836,9 +836,9 @@ namespace Enemy
         {
             if (gizmoTarget != Vector3.zero)
             {
-                Gizmos.color = UnityEngine.Color.red;
-                Gizmos.DrawLine(SightPivot.position, gizmoTarget);
-                Gizmos.DrawSphere(gizmoTarget, 0.2f);
+                //Gizmos.color = UnityEngine.Color.red;
+                //Gizmos.DrawLine(SightPivot.position, gizmoTarget);
+                //Gizmos.DrawSphere(gizmoTarget, 0.2f);
             }
         }
 
