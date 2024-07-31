@@ -92,6 +92,8 @@ namespace Enemy
         private (Slow SlowData, float Duration) currentSlow = (null, 0f);
         private (Stun StunData, float Duration) currentStun = (null, 0f);
 
+        private EnemyRespawner enemyRespawnerLink = null;
+
         int _currentHealth = 0;
         public int CurrentHealth
         {
@@ -500,6 +502,7 @@ namespace Enemy
                     {
                         return;
                     }
+
                     currentStateDuration = EnemyData.DyingDuration + Time.time;
                     break;
                 default: //EnemyState.Inactive:
@@ -797,6 +800,11 @@ namespace Enemy
         private void KillEnemy()
         {
             gameObject.SetActive(false);
+            if(enemyRespawnerLink != null)
+            { 
+                enemyRespawnerLink.RespawnCallback();
+            }
+
             Destroy(gameObject);
         }
 
@@ -838,6 +846,17 @@ namespace Enemy
         {
             currentAnimationState = animationState;
             Animator.SetInteger("AnimationState", (int)currentAnimationState);
+        }
+
+        public EnemyController RespawnLink(EnemyRespawner respawner)
+        {
+            enemyRespawnerLink = respawner;
+            return this;
+        }
+
+        public void ExpireEnemy()
+        {
+            ChangeState(EnemyState.Dying);
         }
     }
 }

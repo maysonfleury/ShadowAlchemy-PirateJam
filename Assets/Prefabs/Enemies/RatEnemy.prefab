@@ -372,6 +372,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: RatEnemy
       objectReference: {fileID: 0}
+    - target: {fileID: 4715086810438688670, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_TagString
+      value: Enemy
+      objectReference: {fileID: 0}
     - target: {fileID: 5096899863499173847, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -444,6 +448,10 @@ PrefabInstance:
       propertyPath: <AttackSensor>k__BackingField
       value: 
       objectReference: {fileID: 3005772913694333855}
+    - target: {fileID: 8585578638800487453, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: <EnemyData>k__BackingField.<DyingDuration>k__BackingField
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 8585578638800487453, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: <EnemyData>k__BackingField.<HasSleepState>k__BackingField
       value: 1
