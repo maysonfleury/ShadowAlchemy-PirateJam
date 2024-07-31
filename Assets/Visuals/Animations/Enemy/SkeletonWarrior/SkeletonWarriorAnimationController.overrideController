@@ -9,5 +9,17 @@ AnimatorOverrideController:
   m_Name: SkeletonWarriorAnimationController
   m_Controller: {fileID: 9100000, guid: 8eee6d8edc6caef4a87d6a7117dc8697, type: 2}
   m_Clips:
-  - m_OriginalClip: {fileID: 7400000, guid: 02cc2fc190fbec446a269de7f4f6a53f, type: 2}
-    m_OverrideClip: {fileID: 7400000, guid: 04a0f8f417b9f7a4abd78f7e5f5173be, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: fe20dae669b52124ea2b4ea1b3557f94, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 152c0b31209f25d458f26e2b3634eddd, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: b25f233954e30384ca0c8bcb1f34fca3, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: fe2cc8f22605a854baefb6871c3114f1, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 1f896b08779dc4f4a89b57c3e144aba9, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 0fbe2556581138d4d88dc3da0a41c7bb, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: c6b0656ff57b9e44ba7e5771792eaa85, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 68837576a91b4a54cbf77e3ff3bbb361, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 4ae773c04c674454cba8893fb6069ee8, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: bc5ed372b60a1a9449fc324e4bde4f62, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 904ecf8844ac93644af8c02991518421, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 152c0b31209f25d458f26e2b3634eddd, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: afece070cb414994eb9d70ea8a6fd1a3, type: 2}
+    m_OverrideClip: {fileID: 1354083256325142241, guid: d1f3c90283c19dd4281bf5c17528a578, type: 3}

@@ -169,7 +169,7 @@ namespace Enemy
             targetFilter.SetLayerMask(LayerMask.GetMask("Player"));
 
             sightOcclusionMask = LayerUtility.CombineMasks(SightOcclusionMasks);
-            attackAnimationLength = GetClipLength("Attack1");
+            attackAnimationLength = GetClipLength("Attack1") + 0.25f;
 
         }
 
@@ -319,6 +319,7 @@ namespace Enemy
                                 else
                                 {
                                     PrepareFlipCharacter(EnemyData.ChaseFlipTime);
+                                    ChangeAnimationState(AnimationState.Idle);
                                 }
                             }
 
@@ -352,6 +353,11 @@ namespace Enemy
                     if (SweepProximityCheck(out target)
                         && SightCheck(target.transform))
                     {
+                        if(!IsPointInFront(target.transform.position))
+                        {
+                            FlipCharacter();
+                        }
+
                         ChangeState(EnemyState.Chasing);
                     }
 
@@ -390,10 +396,11 @@ namespace Enemy
                     if (currentAttackAnimationTime < Time.time)
                     {
                         OnAttackComplete();
+                        ChangeAnimationState(AnimationState.Idle);
                         ChangeState(EnemyState.Chasing);
                     }
 
-                    ChangeAnimationState(AnimationState.Idle);
+                    //ChangeAnimationState(AnimationState.Idle);
 
                     return;
                 case EnemyState.Watching:
@@ -414,6 +421,7 @@ namespace Enemy
 
                         else if (!IsPointInFront(target.transform.position))
                         {
+                            currentAttackCooldown = 0;
                             ChangeState(EnemyState.Chasing);
                         }
                     }
@@ -658,7 +666,7 @@ namespace Enemy
         {
             Vector2 direction = GetDirection(FirePivot.position, targetPoint) * HorizontalFacing;
 
-            const float angle = 75;
+            const float angle = 60;
 
             if (direction != Vector2.zero)
             {
