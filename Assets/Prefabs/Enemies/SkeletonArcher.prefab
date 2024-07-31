@@ -398,6 +398,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9140838387501537743}
+  - component: {fileID: 2969608309141314301}
   m_Layer: 0
   m_Name: SK_Skeleton_Bow
   m_TagString: Untagged
@@ -422,6 +423,24 @@ Transform:
   - {fileID: 1297394399447417151}
   m_Father: {fileID: 1301348756581416277}
   m_LocalEulerAnglesHint: {x: 0, y: 115, z: 0}
+--- !u!114 &2969608309141314301
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2828633109175566579}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  outlineMode: 1
+  outlineColor: {r: 0.5471698, g: 0, b: 0, a: 1}
+  outlineWidth: 2
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []
 --- !u!1 &2899220378616659343
 GameObject:
   m_ObjectHideFlags: 0
@@ -2434,6 +2453,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 614942528871513525, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.09
+      objectReference: {fileID: 0}
     - target: {fileID: 683515663145306395, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: m_Size.y
       value: 2.94
@@ -2575,6 +2598,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 6187459373071055863}
     - target: {fileID: 8585578638800487453, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: <DeathParticles>k__BackingField
+      value: 
+      objectReference: {fileID: 2972648473728902948}
+    - target: {fileID: 8585578638800487453, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: <EnemyData>k__BackingField.<ChaseSpeed>k__BackingField
       value: 3
       objectReference: {fileID: 0}
@@ -2622,5 +2649,10 @@ PrefabInstance:
 --- !u!4 &1301348756581416277 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3352773344387736894, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+  m_PrefabInstance: {fileID: 4361771815669815403}
+  m_PrefabAsset: {fileID: 0}
+--- !u!198 &2972648473728902948 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 1569742317625589583, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
   m_PrefabInstance: {fileID: 4361771815669815403}
   m_PrefabAsset: {fileID: 0}

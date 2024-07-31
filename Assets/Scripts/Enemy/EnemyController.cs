@@ -64,6 +64,10 @@ namespace Enemy
         [field: SerializeField] public Collider2D AttackBox { get; private set; }
         [field: SerializeField] public ParticleSystem AttackParticles { get; private set; }
 
+        [field: Space]
+        [field: Header("Possession")]
+        [field: SerializeField] public ParticleSystem DeathParticles { get; private set; }
+
         public EnemyState EnemyState { get; private set; } = EnemyState.Patrolling;
         public int HorizontalFacing { get; private set; } = 1;
 
@@ -439,6 +443,7 @@ namespace Enemy
 
                 case EnemyState.Dying:
                     ChangeAnimationState(AnimationState.Death);
+                    DeathParticles.Play();
                     if (currentStateDuration < Time.time)
                     {
                         KillEnemy();
