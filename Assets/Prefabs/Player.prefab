@@ -42021,6 +42021,7 @@ MonoBehaviour:
   canMove: 1
   canAttack: 1
   isSlowed: 0
+  animator: {fileID: 4946137805603717338}
   knockbackParticle: {fileID: 5558534888175672663}
   jumpParticle: {fileID: 5307528485303692097}
   attackParticle: {fileID: 8988876210592903730}
@@ -49016,6 +49017,7 @@ MonoBehaviour:
   canMove: 1
   canAttack: 1
   isSlowed: 0
+  animator: {fileID: 5744118081419506562}
   knockbackParticle: {fileID: 5954403984718993112}
   jumpParticle: {fileID: 4965355722137210279}
   attackParticle: {fileID: 7794627287294751466}

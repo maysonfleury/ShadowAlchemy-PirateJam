@@ -41,6 +41,7 @@ public class SkeletonController : MonoBehaviour, IPlayerController, IEffectable,
 
     [Space]
     [Header("Polish")]
+    public Animator animator;
     public ParticleSystem knockbackParticle;
     public ParticleSystem jumpParticle;
     public ParticleSystem attackParticle;
@@ -138,10 +139,17 @@ public class SkeletonController : MonoBehaviour, IPlayerController, IEffectable,
             coyoteEnabled = false;
         }
 
+        if (coll.onGround && !animator.GetBool("isGrounded"))
+        {
+            animator.SetBool("isGrounded", true);
+        }
+
         if(!coll.onGround && groundTouch)
         {
             groundTouch = false;
             StartCoroutine(CoyoteTime(coyoteFrames));
+            //animator.SetBool("isRunning", false);
+            animator.SetBool("isGrounded", false);
         }
 
         //WallParticle(y);
@@ -160,6 +168,7 @@ public class SkeletonController : MonoBehaviour, IPlayerController, IEffectable,
         {
             if(!DOTween.IsTweening(skeletonModel.transform))
                 skeletonModel.transform.DOLocalRotate(Vector3.zero, rotateTime).SetEase(Ease.OutExpo);
+            animator.SetBool("isRunning", false);
         }
         else if(xRaw > 0)
         {
@@ -167,6 +176,7 @@ public class SkeletonController : MonoBehaviour, IPlayerController, IEffectable,
             skeletonModel.transform.localScale = new Vector3(side, 1, 1);
             if (!DOTween.IsTweening(skeletonModel.transform))
                 skeletonModel.transform.DOLocalRotate(new Vector3(0, 0, -2), rotateTime);
+            if (coll.onGround) animator.SetBool("isRunning", true);
         }
         else if (xRaw < 0)
         {
@@ -174,6 +184,7 @@ public class SkeletonController : MonoBehaviour, IPlayerController, IEffectable,
             skeletonModel.transform.localScale = new Vector3(side, 1, 1);
             if (!DOTween.IsTweening(skeletonModel.transform))
                 skeletonModel.transform.DOLocalRotate(new Vector3(0, 0, 2), rotateTime);
+            if (coll.onGround) animator.SetBool("isRunning", true);
         }
     }
 
@@ -258,6 +269,8 @@ public class SkeletonController : MonoBehaviour, IPlayerController, IEffectable,
         attackParticle.Play();
         Invoke(nameof(ResetAttack), attackCooldown);
         Invoke(nameof(DisableHitbox), 0.05f);
+
+        animator.SetTrigger("attack");
     }
 
     private void ResetAttack()
@@ -288,9 +301,8 @@ public class SkeletonController : MonoBehaviour, IPlayerController, IEffectable,
 
     void GroundTouch()
     {
-        //side = anim.sr.flipX ? -1 : 1;
-
         jumpParticle.Play();
+        animator.SetBool("isGrounded", true);
     }
 
     private void Jump(Vector2 dir, bool wall)
@@ -298,6 +310,7 @@ public class SkeletonController : MonoBehaviour, IPlayerController, IEffectable,
         //slideParticle.transform.parent.localScale = new Vector3(ParticleSide(), 1, 1);
         //ParticleSystem particle = wall ? wallJumpParticle : jumpParticle;
         sfxManager.Play("jump");
+        animator.SetTrigger("jump");
 
         coyoteEnabled = false;
 
