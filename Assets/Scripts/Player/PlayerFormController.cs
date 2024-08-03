@@ -175,7 +175,7 @@ public class PlayerFormController : MonoBehaviour
                 currentForm = PlayerForm.SkeletonWarrior;
                 if (currentTransform != skeletonWarriorController.transform)
                 {
-                    skeletonArcherController.ResetForm();
+                    skeletonWarriorController.ResetForm();
                     currentTransform.gameObject.SetActive(false);
                     currentTransform = skeletonWarriorController.transform;
                 }
