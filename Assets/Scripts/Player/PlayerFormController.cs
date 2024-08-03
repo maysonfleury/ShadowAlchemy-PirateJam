@@ -251,6 +251,8 @@ public class PlayerFormController : MonoBehaviour
                 break;
             }
             currentHP--;
+            if (currentTransform.TryGetComponent(out IPlayerController controller))
+                controller.OnTakeDamage();
             TimeManager.Instance.HitStopFrames(damagedStopTime);
         }
 
@@ -302,6 +304,8 @@ public class PlayerFormController : MonoBehaviour
     {
         ChangeForm(PlayerForm.Shade, currentTransform.position);
         possessParticle.Play();
+        if (currentTransform.TryGetComponent(out IPlayerController controller))
+            controller.OnTakeDamage();
         StartCoroutine(ReturnToShadeRoutine());
     }
 

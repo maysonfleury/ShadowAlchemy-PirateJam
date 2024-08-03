@@ -250,6 +250,11 @@ public class BatController : MonoBehaviour, IPlayerController, IEffectable, IMov
         // Rip bat :(
     }
 
+    public void OnTakeDamage()
+    {
+        // Rip bat :(
+    }
+
     public void OnWebEnter(float percentage)
     {
         // Flat 95% slow for bats in webs

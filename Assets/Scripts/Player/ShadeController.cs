@@ -610,9 +610,18 @@ public class ShadeController : MonoBehaviour, IPlayerController, IEffectable, IM
 
     public void OnTakeDamage(Vector2 damageOrigin)
     {
+        Debug.Log("[ShadeController]: Shade Form took damage!");
         hurtParticle.Play();
         Vector2 knockbackDir = new Vector2(transform.position.x, transform.position.y) - damageOrigin;
         Knockback(knockbackDir.x * knockbackForce, knockbackDir.y * knockbackForce);
+    }
+
+    public void OnTakeDamage()
+    {
+        Debug.Log("[ShadeController]: Shade Form took damage!");
+        animator.SetTrigger("hit");
+        hurtParticle.Play();
+        //Knockback(0, 1 * knockbackForce);
     }
 
     public void OnWebEnter(float percentage)
