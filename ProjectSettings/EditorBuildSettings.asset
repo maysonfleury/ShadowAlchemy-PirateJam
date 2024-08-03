@@ -12,12 +12,12 @@ EditorBuildSettings:
     path: Assets/Scenes/MainMenu.unity
     guid: 372a061e7477da94d95f836c4124b9a3
   - enabled: 1
-    path: Assets/Scenes/PlayerKeyAim.unity
-    guid: b065eb71a9a9f7f4aba530de2fdd7c61
+    path: Assets/Scenes/TutorialLayer.unity
+    guid: d5c2826df1117454dbd0fde7251610ad
   - enabled: 1
     path: Assets/Scenes/PlayerMouseAim.unity
     guid: 7f6e9f8a97b2823489ebedf81f931154
   - enabled: 1
-    path: Assets/Scenes/TutorialLayer.unity
-    guid: d5c2826df1117454dbd0fde7251610ad
+    path: Assets/Scenes/PlayerKeyAim.unity
+    guid: b065eb71a9a9f7f4aba530de2fdd7c61
   m_configObjects: {}
