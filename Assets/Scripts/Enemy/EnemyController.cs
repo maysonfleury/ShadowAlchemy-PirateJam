@@ -13,8 +13,6 @@ namespace Enemy
         Patrolling,
         Evading,
         Chasing,
-        Sweeping,
-        Watching,
         Attacking,
         Dying,
     }
@@ -53,7 +51,8 @@ namespace Enemy
         [field: SerializeField] public Collider2D PatrolSensor { get; private set; }
         [field: SerializeField] public Collider2D AlertSensor { get; private set; }
         [field: SerializeField] public Collider2D SweepSensor { get; private set; }
-        [field: SerializeField] public Collider2D AttackSensor { get; private set; }
+        [field: SerializeField] public Collider2D MeleeAttackSensor { get; private set; }
+        [field: SerializeField] public Collider2D RangeAttackSensor { get; private set; }
         [field: SerializeField] public Collider2D LedgeSensor { get; private set; }
         [field: SerializeField] public Collider2D WallSensor { get; private set; }
         [field: SerializeField] public Collider2D GroundSensor { get; private set; }
@@ -63,6 +62,10 @@ namespace Enemy
         [field: Header("Attack Components")]
         [field: SerializeField] public Collider2D AttackBox { get; private set; }
         [field: SerializeField] public ParticleSystem AttackParticles { get; private set; }
+
+        [field: Space]
+        [field: Header("Extra")]
+        [field: SerializeField] public Transform ExclamationMark { get; private set; }
 
         [field: Space]
         [field: Header("Possession")]
@@ -79,8 +82,7 @@ namespace Enemy
         private float currentStateDuration = 0.0f;
         private LayerMask sightOcclusionMask;
         private float currentAttackCooldown = 0;
-        private float currentFlipWaitTime = 0;
-        private bool isWaitingToFlip = false;
+        private float currentFlipCooldownTime = 0;
         private Vector2 lastTargetDirection = Vector2.zero;
 
         const float stabilizeTime = 0.5f;
@@ -89,7 +91,7 @@ namespace Enemy
         private bool attackBoxEnabled = false;
         private AttackSO currentAttackSO = null;
 
-        private float attackAnimationLength = 0;
+        private string nextAttackAbility = "";
         private float currentAttackAnimationTime = 0;
         private AnimationState currentAnimationState = AnimationState.Idle;
 
@@ -97,6 +99,7 @@ namespace Enemy
         private (Stun StunData, float Duration) currentStun = (null, 0f);
 
         private EnemyRespawner enemyRespawnerLink = null;
+
 
         int _currentHealth = 0;
         public int CurrentHealth
@@ -175,7 +178,6 @@ namespace Enemy
             targetFilter.SetLayerMask(LayerMask.GetMask("Player"));
 
             sightOcclusionMask = LayerUtility.CombineMasks(SightOcclusionMasks);
-            attackAnimationLength = GetClipLength("Attack1") + 0.25f;
 
         }
 
@@ -186,268 +188,43 @@ namespace Enemy
 
         protected void FixedUpdate()
         {
-            Collider2D target;
+            ReboundPlayer();
 
             switch (EnemyState)
             {
                 case EnemyState.Sleeping:
-                    if(!IsStabilized())
-                    {
-                        return;
-                    }
 
-                    if(currentStateDuration < Time.time)
-                    {
-                        ChangeState(EnemyState.Patrolling);
-                    }
-
-                    else if (NearbyProximityCheck(out target)
-                    && SightCheck(target.transform))
-                    {
-                        ChangeState(EnemyState.Patrolling);
-                    }
-
-                    ChangeAnimationState(AnimationState.Sleeping);
+                    SleepState();
 
                     return;
 
                 case EnemyState.Patrolling:
-                    if (!IsStabilized())
-                    {
-                        return;
-                    }
 
-                    if (EnemyData.HasSleepState 
-                        && currentStateDuration < Time.time)
-                    {
-                        ChangeState(EnemyState.Sleeping);
-                    }
-
-                    else if (PatrolProximityCheck(out target)
-                        && SightCheck(target.transform))
-                    {
-                        if (EnemyData.EnemyBehaviour == EnemyBehaviourType.Aggressive)
-                        {
-                            ChangeState(EnemyState.Chasing);
-                        }
-
-                        else if(EnemyData.EnemyBehaviour == EnemyBehaviourType.Evasive)
-                        {
-                            FlipCharacter();
-                            ChangeState(EnemyState.Evading);
-                        }
-                    }
-
-                    else if(LedgeCheck() || WallCheck())
-                    {
-
-                        PrepareFlipCharacter(EnemyData.PatrolFlipTime);
-                        ChangeAnimationState(AnimationState.Idle);
-                    }
-
-                    else
-                    {
-                        UpdateVelocity(new(HorizontalFacing, 0), EnemyData.PatrolSpeed);
-                        ChangeAnimationState(AnimationState.Moving);
-                    }
+                    PatrolState();
 
                     return;
 
                 case EnemyState.Evading:
-                    if (!IsStabilized())
-                    {
-                        return;
-                    }
 
-                    if (AlertedProximityCheck(out target)
-                       && SightCheck(target.transform))
-                    {
-                        currentStateDuration = EnemyData.EvasiveDuration + Time.time;
-
-                    }
-
-                    else if (currentStateDuration < Time.time)
-                    {
-                        ChangeState(EnemyState.Patrolling);
-                    }
-
-                    if (LedgeCheck() || WallCheck())
-                    {
-                        PrepareFlipCharacter(EnemyData.PatrolFlipTime);
-                    }
-
-                    else
-                    {
-                        UpdateVelocity(new(HorizontalFacing, 0), EnemyData.EvasiveSpeed);
-                        ChangeAnimationState(AnimationState.Moving);
-                    }
-
+                    EvadeState();
 
                     return;
 
                 case EnemyState.Chasing:
-                    if (!IsStabilized())
-                    {
-                        return;
-                    }
 
-                    if (currentAttackCooldown >= Time.time)
-                    {
-                        return;
-                    }
-
-                    else if (AlertedProximityCheck(out target)
-                        && SightCheck(target.transform))
-                    {
-                        bool targetIsInFront = IsPointInFront(target.transform.position);
-
-                        if(targetIsInFront)
-                        {
-                            RotateAttackPivotTowards(target.transform.position);
-                        }
-
-                        if (AttackProximityCheck(out _) 
-                            && currentAttackCooldown < Time.time)
-                        {
-                            ChangeState(EnemyState.Attacking);
-                        }
-
-                        else
-                        {
-
-                            if (LedgeCheck() || WallCheck())
-                            {
-                                if (EnemyData.HasWatchState && targetIsInFront)
-                                {
-                                    ChangeState(EnemyState.Watching);
-                                }
-
-                                else
-                                {
-                                    PrepareFlipCharacter(EnemyData.ChaseFlipTime);
-                                    ChangeAnimationState(AnimationState.Idle);
-                                }
-                            }
-
-                            else if(!targetIsInFront)
-                            {
-                                PrepareFlipCharacter(EnemyData.ChaseFlipTime);
-                                ChangeAnimationState(AnimationState.Idle);
-                            }
-
-                            else
-                            {
-                                UpdateVelocity(new(HorizontalFacing, 0), EnemyData.ChaseSpeed);
-                                ChangeAnimationState(AnimationState.Moving);
-                            }
-                        }
-                    }
-
-                    else
-                    {
-                        ChangeState(EnemyState.Sweeping);
-                    }
-
-                    return;
-
-                case EnemyState.Sweeping:
-                    if (!IsStabilized())
-                    {
-                        return;
-                    }
-
-                    if (SweepProximityCheck(out target)
-                        && SightCheck(target.transform))
-                    {
-                        if(!IsPointInFront(target.transform.position))
-                        {
-                            FlipCharacter();
-                        }
-
-                        ChangeState(EnemyState.Chasing);
-                    }
-
-                    else if (currentStateDuration < Time.time)
-                    {
-                        ChangeState(EnemyState.Patrolling);
-                    }
-
-                    else if (LedgeCheck() || WallCheck())
-                    {
-                        PrepareFlipCharacter(EnemyData.SweepFlipTime);
-                        ChangeAnimationState(AnimationState.Idle);
-                    }
-
-                    else
-                    {
-                        UpdateVelocity(new(HorizontalFacing, 0), EnemyData.SweepSpeed);
-                        ChangeAnimationState(AnimationState.Moving);
-                    }
-
+                    ChaseState();
+                    
                     return;
 
                 case EnemyState.Attacking:
-                    if (attackBoxEnabled
-                        && AttackHitboxProximityCheck(out target)
-                        && SightCheck(target.transform))
-                    {
-                        currentAttackSO.ApplyAttack(HorizontalFacing, target.transform);
-                    }
 
-                    if (!IsStabilized())
-                    {
-                        return;
-                    }
-
-                    if (currentAttackAnimationTime < Time.time)
-                    {
-                        OnAttackComplete();
-                        ChangeAnimationState(AnimationState.Idle);
-                        ChangeState(EnemyState.Chasing);
-                    }
-
-                    //ChangeAnimationState(AnimationState.Idle);
-
-                    return;
-                case EnemyState.Watching:
-                    if (!IsStabilized())
-                    {
-                        return;
-                    }
-
-                    if (AlertedProximityCheck(out target)
-                        && SightCheck(target.transform))
-                    {
-
-                        if (AttackProximityCheck(out _) 
-                            && currentAttackCooldown < Time.time)
-                        {
-                            ChangeState(EnemyState.Attacking);
-                        }
-
-                        else if (!IsPointInFront(target.transform.position))
-                        {
-                            currentAttackCooldown = 0;
-                            ChangeState(EnemyState.Chasing);
-                        }
-                    }
-
-                    else
-                    {
-                        ChangeState(EnemyState.Sweeping);
-                    }
-
-                    ChangeAnimationState(AnimationState.Idle);
+                    AttackState();
 
                     return;
 
                 case EnemyState.Dying:
-                    ChangeAnimationState(AnimationState.Death);
-                    DeathParticles.Play();
-                    if (currentStateDuration < Time.time)
-                    {
-                        KillEnemy();
-                    }
+
+                    DieState();
                     return;
 
                 default: //EnemyState.Inactive:
@@ -457,49 +234,38 @@ namespace Enemy
 
         private void ChangeState(EnemyState state)
         {
-            isWaitingToFlip = false;
             currentStateDuration = 0;
+            ExclamationMark.gameObject.SetActive(false);
 
             //Debug.Log($"Switching state to: {state}");
 
             switch (state)
             {
                 case EnemyState.Sleeping:
-                    ResetAttackPivot();
                     RemoveVelocity();
                     currentStateDuration = EnemyData.SleepDuration + Time.time;
                     break;
 
                 case EnemyState.Patrolling:
-                    ResetAttackPivot();
                     currentStateDuration = EnemyData.PatrolDuration + Time.time;
                     break;
 
                 case EnemyState.Evading:
-                    ResetAttackPivot();
                     currentStateDuration = EnemyData.EvasiveDuration + Time.time;
                     break;
 
                 case EnemyState.Chasing:
                     currentAttackCooldown = EnemyData.AttackCooldown + Time.time;
-                    break;
-                case EnemyState.Sweeping:
-                    ResetAttackPivot();
-                    currentStateDuration = EnemyData.SweepDuration + Time.time;
+                    ExclamationMark.gameObject.SetActive(true);
                     break;
                 case EnemyState.Attacking:
-
-                    currentAttackAnimationTime = attackAnimationLength
+                    ExclamationMark.gameObject.SetActive(true);
+                    ChangeAnimationState(AnimationState.Idle);
+                    Animator.SetTrigger(nextAttackAbility);
+                    currentAttackAnimationTime = GetClipLength(nextAttackAbility) 
                         + EnemyData.AttackCooldown
                         + Time.time;
 
-                    ChangeAnimationState(AnimationState.Idle);
-                    Animator.SetTrigger("Attack1");
-
-                    break;
-                case EnemyState.Watching:
-                    ResetAttackPivot();
-                    UpdateVelocity(new Vector2(HorizontalFacing, 0), 0);
                     break;
 
                 case EnemyState.Dying:
@@ -517,24 +283,213 @@ namespace Enemy
             EnemyState = state;
         }
 
-
-        protected bool PrepareFlipCharacter(float flipTime)
+        protected void SleepState()
         {
-            if (!isWaitingToFlip)
+            if (!IsStabilized())
             {
-                isWaitingToFlip = true;
-                currentFlipWaitTime = flipTime + Time.time;
+                return;
             }
 
-            else if (currentFlipWaitTime < Time.time)
+            if (currentStateDuration < Time.time)
             {
-                FlipCharacter();
-                isWaitingToFlip = false;
-                return true;
+                ChangeState(EnemyState.Patrolling);
             }
 
-            return false;
+            else if (NearbyProximityCheck(out Collider2D target)
+            && SightCheck(target.transform))
+            {
+                ChangeState(EnemyState.Patrolling);
+            }
+
+            ChangeAnimationState(AnimationState.Sleeping);
         }
+
+        protected void PatrolState()
+        {
+            if (!IsStabilized())
+            {
+                return;
+            }
+
+            if (EnemyData.HasSleepState
+                && currentStateDuration < Time.time)
+            {
+                ChangeState(EnemyState.Sleeping);
+            }
+
+            else if (PatrolProximityCheck(out Collider2D target)
+                && SightCheck(target.transform))
+            {
+                if (EnemyData.EnemyBehaviour == EnemyBehaviourType.Aggressive)
+                {
+                    ChangeState(EnemyState.Chasing);
+                }
+
+                else if (EnemyData.EnemyBehaviour == EnemyBehaviourType.Evasive)
+                {
+                    ChangeState(EnemyState.Evading);
+                }
+            }
+
+            else if (EnemyData.IsGrounded && LedgeCheck() || WallCheck())
+            {
+
+                if (currentFlipCooldownTime <= Time.time)
+                {
+                    FlipCharacter();
+                    currentFlipCooldownTime = Time.time + EnemyData.PatrolFlipCooldown;
+                    return;
+                }
+
+                else
+                {
+                    ChangeAnimationState(AnimationState.Idle);
+                }
+            }
+
+            else
+            {
+                UpdateVelocity(new(HorizontalFacing, 0), EnemyData.PatrolSpeed);
+                ChangeAnimationState(AnimationState.Moving);
+            }
+        }
+
+        protected void EvadeState()
+        {
+            if (!IsStabilized())
+            {
+                return;
+            }
+
+            if (AlertedProximityCheck(out Collider2D target)
+               && SightCheck(target.transform))
+            {
+                currentStateDuration = EnemyData.EvasiveDuration + Time.time;
+
+            }
+
+            else if (currentStateDuration < Time.time)
+            {
+                ChangeState(EnemyState.Patrolling);
+            }
+
+            if(EnemyData.IsGrounded && LedgeCheck() || WallCheck())
+            {
+
+                if (currentFlipCooldownTime <= Time.time)
+                {
+                    FlipCharacter();
+                    currentFlipCooldownTime = Time.time + EnemyData.EvasiveFlipCooldown;
+                    return;
+                }
+
+                else
+                {
+                    ChangeAnimationState(AnimationState.Idle);
+                }
+            }
+
+            else
+            {
+                UpdateVelocity(new(HorizontalFacing, 0), EnemyData.EvasiveSpeed);
+                ChangeAnimationState(AnimationState.Moving);
+            }
+
+        }
+
+        protected void ChaseState()
+        {
+            if (!IsStabilized())
+            {
+                return;
+            }
+
+            if (AlertedProximityCheck(out Collider2D target)
+                && SightCheck(target.transform))
+            {
+                if (!IsPointInFront(target.transform.position))
+                {
+                    if (currentFlipCooldownTime <= Time.time)
+                    {
+                        FlipCharacter();
+                        currentFlipCooldownTime = Time.time + EnemyData.ChaseFlipCooldown;
+                        return;
+                    }
+                }
+
+                else if(currentAttackCooldown <= Time.time)
+                {
+                    RotateAttackPivotTowards(target.transform.position);
+
+                    if (EnemyData.HasMeleeAttack && MeleeAttackProximityCheck(out _))
+                    {
+                        nextAttackAbility = "Attack1";
+                        ChangeState(EnemyState.Attacking);
+                        return;
+                    }
+
+                    else if (EnemyData.HasRangeAttack && RangeAttackProximityCheck(out _))
+                    {
+                        nextAttackAbility = "Attack2";
+                        ChangeState(EnemyState.Attacking);
+                        return;
+                    }
+                }
+            }
+
+            if (EnemyData.IsGrounded && LedgeCheck() || WallCheck())
+            {
+
+                if (currentFlipCooldownTime <= Time.time)
+                {
+                    FlipCharacter();
+                    ChangeState(EnemyState.Patrolling);
+                }
+
+                else
+                {
+                    ChangeAnimationState(AnimationState.Idle);
+                }
+
+                return;
+            }
+
+            else
+            {
+                UpdateVelocity(new(HorizontalFacing, 0), EnemyData.ChaseSpeed);
+                ChangeAnimationState(AnimationState.Moving);
+            }
+        }
+
+
+        protected void AttackState()
+        {
+            OnAttackBoxStay();
+
+            if (!IsStabilized())
+            {
+                return;
+            }
+
+            if (currentAttackAnimationTime < Time.time)
+            {
+                OnAttackComplete();
+                ChangeAnimationState(AnimationState.Idle);
+                ChangeState(EnemyState.Chasing);
+            }
+        }
+
+        protected void DieState()
+        {
+            ChangeAnimationState(AnimationState.Death);
+            DeathParticles.Play();
+            if (currentStateDuration < Time.time)
+            {
+                KillEnemy();
+            }
+            return;
+        }
+
 
         protected void FlipCharacter()
         {
@@ -543,7 +498,6 @@ namespace Enemy
             transform.localScale = localScale;
 
             HorizontalFacing = -HorizontalFacing;
-            //Debug.Log($"Flipping horizontal direction to: {HorizontalFacing}");
         }
 
         private bool ColliderCheck(Collider2D sensor, ContactFilter2D filter, out Collider2D hitCollider)
@@ -592,6 +546,19 @@ namespace Enemy
             //Rigidbody.AddForce(direction * (speed - Rigidbody.velocity.magnitude));
         }
 
+        private void ReboundPlayer()
+        {
+            if(NearbyProximityCheck(out Collider2D collider))
+            {
+                if(collider.CompareTag("Player") && collider.TryGetComponent(out Rigidbody2D rigidbody))
+                {
+                    Vector2 direction = collider.transform.position - transform.position;
+                    direction = new Vector2(direction.x, 0);
+                    rigidbody.AddForce(direction * 100);
+                }
+            }
+        }
+
         protected void RemoveVelocity()
         {
             Rigidbody.velocity = Vector2.zero;
@@ -599,21 +566,11 @@ namespace Enemy
 
         private bool GroundCheck()
         {
-            if(!EnemyData.IsGrounded)
-            {
-                return true;
-            }
-
             return ColliderCheck(GroundSensor, groundFilter, out _);
         }
 
         private bool LedgeCheck()
         {
-            if (!EnemyData.IsGrounded)
-            {
-                return false;
-            }
-
             return !ColliderCheck(LedgeSensor, groundFilter, out _);
         }
 
@@ -637,14 +594,14 @@ namespace Enemy
             return ColliderCheck(AlertSensor, targetFilter, out hitCollider);
         }
 
-        private bool SweepProximityCheck(out Collider2D hitCollider)
+        private bool MeleeAttackProximityCheck(out Collider2D hitCollider)
         {
-            return ColliderCheck(SweepSensor, targetFilter, out hitCollider);
+            return ColliderCheck(MeleeAttackSensor, targetFilter, out hitCollider);
         }
 
-        private bool AttackProximityCheck(out Collider2D hitCollider)
+        private bool RangeAttackProximityCheck(out Collider2D hitCollider)
         {
-            return ColliderCheck(AttackSensor, targetFilter, out hitCollider);
+            return ColliderCheck(RangeAttackSensor, targetFilter, out hitCollider);
         }
 
         private bool AttackHitboxProximityCheck(out Collider2D hitCollider)
@@ -683,11 +640,6 @@ namespace Enemy
                 Quaternion targetRotation = Quaternion.Euler(0, 0, clampedAngle);
                 FirePivot.rotation = targetRotation;
             }
-        }
-
-        private void ResetAttackPivot()
-        {
-            RotateAttackPivotTowards(new Vector2(HorizontalFacing, 0) + (Vector2)FirePivot.position);
         }
 
         private Vector2 GetDirection(Vector2 startPoint, Vector2 endPoint)
@@ -732,6 +684,16 @@ namespace Enemy
             currentAttackSO = null;
         }
 
+        private void OnAttackBoxStay()
+        {
+            if (attackBoxEnabled
+                && AttackHitboxProximityCheck(out Collider2D target)
+                && SightCheck(target.transform))
+            {
+                currentAttackSO.ApplyAttack(HorizontalFacing, target.transform);
+            }
+        }
+
         public void FireProjectile(ProjectileSO projectileSO)
         {
             Vector2 dir = FirePivot.right * HorizontalFacing;
@@ -745,7 +707,7 @@ namespace Enemy
             if(EnemyState == EnemyState.Sleeping
                 || EnemyState == EnemyState.Patrolling)
             {
-                ChangeState(EnemyState.Sweeping);
+                ChangeState(EnemyState.Chasing);
             }
         }
 
@@ -781,7 +743,8 @@ namespace Enemy
 
         private bool IsStabilized()
         {
-            if (!GroundCheck() || Stunned)
+
+            if ((EnemyData.IsGrounded && !GroundCheck()) || Stunned)
             {
                 currentStabilizingTime = stabilizeTime + Time.time;
                 return false;

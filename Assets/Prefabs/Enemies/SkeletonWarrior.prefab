@@ -32,6 +32,14 @@ PrefabInstance:
       propertyPath: m_Material
       value: 
       objectReference: {fileID: 6200000, guid: 0396c7dc1802e6e46adde57b877167ca, type: 2}
+    - target: {fileID: 1763935992064178239, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.07
+      objectReference: {fileID: 0}
+    - target: {fileID: 1763935992064178239, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 3.38
+      objectReference: {fileID: 0}
     - target: {fileID: 2573318176188297035, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -43,6 +51,10 @@ PrefabInstance:
     - target: {fileID: 2702910349450977650, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: m_Radius
       value: 0.48
+      objectReference: {fileID: 0}
+    - target: {fileID: 3007350873286799903, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3058472617854187190, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: m_IsActive
@@ -109,8 +121,16 @@ PrefabInstance:
       value: 1.33
       objectReference: {fileID: 0}
     - target: {fileID: 4513230885391650354, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 2.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 4513230885391650354, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: m_LocalPosition.x
       value: 1.6700001
+      objectReference: {fileID: 0}
+    - target: {fileID: 4513230885391650354, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.341
       objectReference: {fileID: 0}
     - target: {fileID: 4636719411330637659, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: m_IsActive
@@ -132,6 +152,10 @@ PrefabInstance:
       propertyPath: m_LocalPosition.x
       value: 1.67
       objectReference: {fileID: 0}
+    - target: {fileID: 5151121929896215018, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.25
+      objectReference: {fileID: 0}
     - target: {fileID: 5605949756914573967, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -139,6 +163,10 @@ PrefabInstance:
     - target: {fileID: 5898084442570724916, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6370563376736001784, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6477580942480327504, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: m_IsActive
@@ -175,7 +203,7 @@ PrefabInstance:
     - target: {fileID: 7555474895098492210, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: m_Controller
       value: 
-      objectReference: {fileID: 22100000, guid: 9e604844540955642a0e30e8bdd65692, type: 2}
+      objectReference: {fileID: 9100000, guid: e3fa074440178114db94215f373c5bef, type: 2}
     - target: {fileID: 7983295267552125703, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: m_LocalScale.x
       value: 1
@@ -209,6 +237,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 3683309466168164949}
     - target: {fileID: 8585578638800487453, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: <RangeAttackSensor>k__BackingField
+      value: 
+      objectReference: {fileID: 4216030743543866672}
+    - target: {fileID: 8585578638800487453, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: <EnemyData>k__BackingField.<ChaseSpeed>k__BackingField
       value: 4
       objectReference: {fileID: 0}
@@ -218,15 +250,31 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8585578638800487453, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: <EnemyData>k__BackingField.<AttackCooldown>k__BackingField
-      value: 0.2
+      value: 1.5
       objectReference: {fileID: 0}
     - target: {fileID: 8585578638800487453, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: <EnemyData>k__BackingField.<EnemyBehaviour>k__BackingField
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8585578638800487453, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: <EnemyData>k__BackingField.<HasRangeAttack>k__BackingField
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8585578638800487453, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
       propertyPath: <EnemyData>k__BackingField.<PossessionType>k__BackingField
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8585578638800487453, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: <EnemyData>k__BackingField.<ChaseFlipCooldown>k__BackingField
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8585578638800487453, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: <EnemyData>k__BackingField.<PatrolFlipCooldown>k__BackingField
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8585578638800487453, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}
+      propertyPath: <EnemyData>k__BackingField.<EvasiveFlipCooldown>k__BackingField
+      value: 1.5
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 2702910349450977650, guid: 675def464b3aeb447b7e7e64ad0e75a4, type: 3}

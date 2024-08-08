@@ -40,32 +40,24 @@ namespace Enemy
         [field: Header("Patrol State")]
         [field: SerializeField] public float PatrolSpeed { get; private set; } = 5.0f;
         [field: SerializeField] public float PatrolDuration { get; private set; } = 5.0f;
-        [field: SerializeField] public float PatrolFlipTime { get; private set; } = 1f;
+        [field: SerializeField] public float PatrolFlipCooldown { get; private set; } = 1f;
 
         [field: Space]
         [field: Header("Evasive State")]
         [field: SerializeField] public float EvasiveSpeed { get; private set; } = 10.0f;
         [field: SerializeField] public float EvasiveDuration { get; private set; } = 5.0f;
-        [field: SerializeField] public float EvasiveFlipTime { get; private set; } = 0.2f;
+        [field: SerializeField] public float EvasiveFlipCooldown { get; private set; } = 1f;
 
         [field: Space]
         [field: Header("Chase State")]
         [field: SerializeField] public float ChaseSpeed { get; private set; } = 10.0f;
-        [field: SerializeField] public float ChaseFlipTime { get; private set; } = 0.2f;
-
-        [field: Space]
-        [field: Header("Sweep State")]
-        [field: SerializeField] public float SweepSpeed { get; private set; } = 8.0f;
-        [field: SerializeField] public float SweepDuration { get; private set; } = 5.0f;
-        [field: SerializeField] public float SweepFlipTime { get; private set; } = 0.5f;
+        [field: SerializeField] public float ChaseFlipCooldown { get; private set; } = 1f;
 
         [field: Space]
         [field: Header("Attack State")]
+        [field: SerializeField] public bool HasMeleeAttack { get; private set; } = true;
+        [field: SerializeField] public bool HasRangeAttack { get; private set; } = true;
         [field: SerializeField] public float AttackCooldown { get; private set; } = 0.5f;
-
-        [field: Space]
-        [field: Header("Watch State")]
-        [field: SerializeField] public bool HasWatchState { get; private set; } = true;
 
         [field: Space]
         [field: Header("Dying State")]
